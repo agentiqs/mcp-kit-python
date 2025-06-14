@@ -1,2 +1,2 @@
-# mcp-kit
-Agentiqs.ai mcp-kit
+# mcp-kit-python
+Agentiqs.ai mcp-kit Python SDK
