@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 # Configuration for GitHub repository links
-GITHUB_ORG = "mynimbus"
+GITHUB_ORG = "agentiqs"
 GITHUB_REPO = "mcp-kit-python"
 
 
