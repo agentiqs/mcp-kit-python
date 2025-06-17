@@ -1,0 +1,94 @@
+# Example configuration for a mocked Odoo MCP target with LLM-generated responses
+target:
+  type: mocked
+  response_generator:
+    type: llm
+    model: anthropic/claude-3-5-haiku-20241022
+  base_target:
+    type: mcp
+    name: odoo_mcp
+    tools:
+      - name: get_expenses
+        description: Retrieve expense records from Odoo accounting system
+        inputSchema:
+          type: object
+          properties:
+            date_from:
+              type: string
+              format: date
+              description: Start date for expense query (YYYY-MM-DD format)
+            date_to:
+              type: string
+              format: date
+              description: End date for expense query (YYYY-MM-DD format)
+            account_id:
+              type: integer
+              description: Optional account ID to filter expenses
+            partner_id:
+              type: integer
+              description: Optional partner/vendor ID to filter expenses
+            limit:
+              type: integer
+              description: Maximum number of records to return
+              default: 100
+          required:
+            - date_from
+            - date_to
+        annotations:
+          title: Expense Records Retrieval
+          readOnlyHint: true
+          destructiveHint: false
+          idempotentHint: true
+          openWorldHint: false
+      - name: get_revenues
+        description: Retrieve revenue records from Odoo accounting system
+        inputSchema:
+          type: object
+          properties:
+            date_from:
+              type: string
+              format: date
+              description: Start date for revenue query (YYYY-MM-DD format)
+            date_to:
+              type: string
+              format: date
+              description: End date for revenue query (YYYY-MM-DD format)
+            account_id:
+              type: integer
+              description: Optional account ID to filter revenues
+            partner_id:
+              type: integer
+              description: Optional customer ID to filter revenues
+            limit:
+              type: integer
+              description: Maximum number of records to return
+              default: 100
+          required:
+            - date_from
+            - date_to
+        annotations:
+          title: Revenue Records Retrieval
+          readOnlyHint: true
+          destructiveHint: false
+          idempotentHint: true
+          openWorldHint: false
+      - name: get_account_balance
+        description: Get current balance for a specific account
+        inputSchema:
+          type: object
+          properties:
+            account_id:
+              type: integer
+              description: The account ID to get balance for
+            date:
+              type: string
+              format: date
+              description: Date for balance calculation (YYYY-MM-DD format, defaults to today)
+          required:
+            - account_id
+        annotations:
+          title: Account Balance Query
+          readOnlyHint: true
+          destructiveHint: false
+          idempotentHint: true
+          openWorldHint: false

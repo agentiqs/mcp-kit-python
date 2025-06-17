@@ -1,0 +1,36 @@
+loaders:
+  - type: python
+    search_path:
+      - ../src
+    packages:
+      - mcp_kit
+    ignore_when_discovered:
+      - "*/tests/*"
+      - "*/test_*"
+      - "*/__pycache__/*"
+
+processors:
+  - type: filter
+    expression: not (name.startswith('_') and not name.endswith('__'))  # Exclude private members except dunder methods
+  - type: smart
+  - type: crossref
+
+renderer:
+  type: docusaurus
+  markdown:
+    descriptive_class_title: false
+    descriptive_module_title: true
+    render_module_header: true
+    use_fixed_header_levels: true
+    insert_header_anchors: false  # Disabled because Docusaurus supports this automatically
+    escape_html_in_docstring: true  # Escape HTML to prevent invalid HTML
+    header_level_by_type:
+      Module: 1
+      Class: 2
+      Method: 3
+      Function: 3
+      Data: 3
+  docs_base_path: ../../website/docs/python-sdk/reference
+  relative_output_path: ""
+  sidebar_top_level_label: null  # Will be managed by main sidebar
+  sidebar_top_level_module_label: null  # Use actual module name

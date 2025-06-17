@@ -1,0 +1,23 @@
+[project]
+name = "examples-mcp-client-session"
+version = "0.1.2"
+description = "MCP Kit Official MCP Client Session Example"
+readme = "README.md"
+authors = [
+    { name = "Agentiqs", email = "support@agentiqs.ai" }
+]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "mcp-kit==0.1.2",
+    "anthropic==0.54.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["examples/mcp_client_session"]
+
+[tool.hatch.metadata]
+allow-direct-references = true

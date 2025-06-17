@@ -1,0 +1,8 @@
+# Example configuration for a simple MCP target
+target:
+  type: mcp
+  name: my-mcp-server
+  url: http://localhost:8080/mcp
+  headers:
+    Authorization: Bearer your-token-here
+    Content-Type: application/json

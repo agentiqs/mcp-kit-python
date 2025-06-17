@@ -1,0 +1,72 @@
+[project]
+name = "mcp-kit"
+version = "0.1.2"
+description = "MCP tooling for developing and optimizing multi-agent AI systems."
+readme = "README.md"
+authors = [
+    { name = "Agentiqs", email = "support@agentiqs.ai" }
+]
+maintainers = [
+  {name = "Mauro", email = "mauro@agentiqs.ai"},
+  {name = "Guido", email = "guido@agentiqs.ai"},
+]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "fastapi[standard]>=0.115.12, <1",
+    "litellm>=1.72.6, <2",
+    "mcp>=1.9.4, <1.10",
+    "omegaconf>=2.3.0, <3",
+    "openapi-core>=0.19.5, <1",
+    "openapi-mcp>=0.1.0, <1",
+    "python-dotenv>=1.1.0, <2",
+    "typing-extensions>=4.14.0, <5",
+]
+license = "Apache-2.0"
+license-files = ["LICEN[CS]E.*"]
+keywords = ["mcp", "ai", "agent", "llm", "proxy", "mock", "oas", "openapi", "tool"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "License :: OSI Approved :: Apache Software License",
+
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: OS Independent",
+  "Operating System :: POSIX",
+  "Operating System :: POSIX :: Linux",
+
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+
+  "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://agentiqs.ai/"
+Documentation = "https://agentiqs.ai/docs/category/python-sdk"
+Repository = "https://github.com/agentiqs/mcp-kit-python"
+Issues = "https://github.com/agentiqs/mcp-kit-python/issues"
+Changelog = "https://github.com/agentiqs/mcp-kit-python/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_kit"]
+
+[project.optional-dependencies]
+langgraph = [
+    "langchain-mcp-adapters==0.1.1",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.2.0",
+    "pytest>=8.4.0, <9",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.2.1",
+    "mcp-kit[langgraph]",
+]

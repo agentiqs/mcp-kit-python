@@ -1,0 +1,5 @@
+# Example configuration for an OpenAPI Specification target
+target:
+  type: oas
+  name: petstore-api
+  spec_url: https://petstore3.swagger.io/api/v3/openapi.json

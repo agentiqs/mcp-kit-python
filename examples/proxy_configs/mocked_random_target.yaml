@@ -1,0 +1,9 @@
+# Example configuration for a mocked target with random responses
+target:
+  type: mocked
+  base_target:
+    type: mcp
+    name: base-mcp-server
+    url: http://localhost:8080/mcp
+  response_generator:
+    type: random

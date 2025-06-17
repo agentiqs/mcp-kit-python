@@ -1,0 +1,10 @@
+{
+  "target": {
+    "type": "mcp",
+    "name": "json-config-example",
+    "url": "http://localhost:8080/mcp",
+    "headers": {
+      "Authorization": "Bearer json-token"
+    }
+  }
+}

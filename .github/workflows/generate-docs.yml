@@ -1,0 +1,128 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - '.docs-syncer/**'
+      - '.github/workflows/generate-docs.yml'
+  workflow_dispatch:
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout mcp-kit-python repository
+      uses: actions/checkout@v4
+      with:
+        path: mcp-kit-python
+        
+    - name: Checkout docs repository
+      uses: actions/checkout@v4
+      with:
+        repository: agentiqs/docs
+        path: website
+        token: ${{ secrets.DOCS_REPO_TOKEN }}
+        
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Load cached Poetry installation
+      id: cached-poetry
+      uses: actions/cache@v4
+      with:
+        path: ~/.local
+        key: poetry-cache-${{ runner.os }}-python-3.12
+        
+    - name: Install Poetry
+      if: steps.cached-poetry.outputs.cache-hit != 'true'
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        installer-parallel: true
+        
+    - name: Configure Poetry (when cache hit)
+      if: steps.cached-poetry.outputs.cache-hit == 'true'
+      run: |
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+        
+    - name: Cache Poetry dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          mcp-kit-python/.docs-syncer/.venv
+          ~/.cache/pypoetry
+        key: ${{ runner.os }}-poetry-docs-${{ hashFiles('mcp-kit-python/.docs-syncer/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-docs-
+        
+    - name: Install documentation dependencies
+      working-directory: mcp-kit-python/.docs-syncer
+      run: |
+        echo "🔍 Checking for cached virtual environment..."
+        if [ -d ".venv" ]; then
+          echo "✅ Virtual environment found in cache"
+          poetry env info
+        else
+          echo "📦 No cached virtual environment found, installing dependencies..."
+        fi
+        poetry install --no-root
+        echo "📋 Installed packages:"
+        poetry show --only=main
+        
+    - name: Generate documentation
+      working-directory: mcp-kit-python/.docs-syncer
+      run: |
+        echo "🚀 Generating comprehensive documentation (API reference + user guide)..."
+        poetry run python generator.py
+        
+    - name: Check for changes in docs
+      id: check_changes
+      working-directory: website
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add all Python SDK documentation changes
+        git add docs/python-sdk/
+        
+        if git diff --staged --quiet; then
+          echo "changes=false" >> $GITHUB_OUTPUT
+          echo "ℹ️  No documentation changes detected"
+        else
+          echo "changes=true" >> $GITHUB_OUTPUT
+          echo "📝 Documentation changes detected:"
+          git diff --staged --name-only | head -20
+        fi
+        
+    - name: Commit and push documentation changes
+      if: steps.check_changes.outputs.changes == 'true'
+      working-directory: website
+      run: |
+        echo "📝 Committing documentation changes..."
+        
+        # Create comprehensive commit message
+        CHANGED_FILES=$(git diff --staged --name-only | wc -l)
+        COMMIT_MSG="📚 Update Python SDK documentation from mcp-kit-python@${{ github.sha }}
+
+        Files changed: $CHANGED_FILES
+        Source commit: https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+        
+        git commit -m "$COMMIT_MSG"
+        git push
+        echo "✅ Documentation successfully updated!"
+        
+    - name: Create Pull Request (alternative to direct push)
+      if: steps.check_changes.outputs.changes == 'true' && false  # Disabled by default
+      working-directory: website
+      run: |
+        git checkout -b update-python-sdk-docs-${{ github.run_number }}
+        git push origin update-python-sdk-docs-${{ github.run_number }}

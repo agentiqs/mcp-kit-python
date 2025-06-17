@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "mcp-kit-docs"
+version = "0.1.0"
+description = "Documentation generator for mcp-kit Python SDK"
+authors = ["Mauro <mauro@agentiqs.ai>", "Guido <guido@agentiqs.ai>"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+pydoc-markdown = "^4.8.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+pytest-asyncio = "^0.21.0"
+mypy = "^1.16.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
