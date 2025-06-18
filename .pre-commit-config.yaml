@@ -11,20 +11,15 @@ repos:
           - types-redis
           - types-cachetools
           - types-PyYAML
+        # Configuration is now in pyproject.toml [tool.mypy]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.11.13
     hooks:
       # Run the linter.
       - id: ruff-check
-        args:
-          - --fix
-          - --select=E,W,F,I,B,C4,UP
-          - --line-length=120
-          - --target-version=py310
-        exclude: |
-          (?x)^(
-            tests/.*\.py$
-          )
+        args: [--fix]
+        # Configuration is now in pyproject.toml [tool.ruff]
       # Run the formatter.
       - id: ruff-format
+        # Configuration is now in pyproject.toml [tool.ruff]
