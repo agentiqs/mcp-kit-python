@@ -1,6 +1,13 @@
 """LangGraph adapter for MCP targets."""
 
+from __future__ import annotations
+
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from langchain_mcp_adapters.tools import BaseTool  # type: ignore[import-untyped]
 
 from mcp_kit.adapters.client_session import ClientSessionAdapter
 from mcp_kit.targets.interfaces import Target
@@ -38,7 +45,7 @@ class LangGraphMultiServerMCPClient:
         server_name: str,
         *,
         auto_initialize: bool = True,
-    ):
+    ) -> AsyncIterator[Any]:
         """Create a new client session for the specified server.
 
         :param server_name: Name of the server to connect to
@@ -59,7 +66,7 @@ class LangGraphMultiServerMCPClient:
             await self.target.close()
             self._session = None
 
-    async def get_tools(self, *, server_name: str | None = None) -> list:
+    async def get_tools(self, *, server_name: str | None = None) -> list[BaseTool]:
         """Get LangChain tools from the MCP server.
 
         Converts MCP tools to LangChain-compatible tools using the langchain_mcp_adapters.
@@ -79,4 +86,4 @@ class LangGraphMultiServerMCPClient:
             await self.target.initialize()
             self._session = ClientSessionAdapter(self.target)
         # Use load_mcp_tools to convert MCP tools to LangChain tools
-        return await self._load_mcp_tools(self._session)  # type: ignore[assignment]
+        return await self._load_mcp_tools(self._session)  # type: ignore

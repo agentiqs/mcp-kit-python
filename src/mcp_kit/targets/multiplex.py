@@ -117,7 +117,7 @@ class MultiplexTarget(Target):
         """
         return target.name + "." + tool_name
 
-    def _get_namespace_from_tool_name(self, name):
+    def _get_namespace_from_tool_name(self, name: str) -> str:
         """Extract target name from a namespaced tool name.
 
         :param name: Namespaced tool name

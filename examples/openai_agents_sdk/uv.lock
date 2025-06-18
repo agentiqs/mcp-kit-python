@@ -251,7 +251,7 @@ wheels = [
 
 [[package]]
 name = "examples-openai-agents-sdk"
-version = "0.1.0"
+version = "0.1.2"
 source = { editable = "." }
 dependencies = [
     { name = "mcp-kit" },
@@ -260,7 +260,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "mcp-kit", directory = "../../" },
+    { name = "mcp-kit", specifier = "==0.1.2" },
     { name = "openai-agents", specifier = "==0.0.17" },
 ]
 
@@ -761,8 +761,8 @@ wheels = [
 
 [[package]]
 name = "mcp-kit"
-version = "0.1.0"
-source = { directory = "../../" }
+version = "0.1.2"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "litellm" },
@@ -773,28 +773,9 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "typing-extensions" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.115.12,<1" },
-    { name = "langchain-mcp-adapters", marker = "extra == 'langgraph'", specifier = "==0.1.1" },
-    { name = "litellm", specifier = ">=1.72.6,<2" },
-    { name = "mcp", specifier = ">=1.9.4,<1.10" },
-    { name = "omegaconf", specifier = ">=2.3.0,<3" },
-    { name = "openapi-core", specifier = ">=0.19.5,<1" },
-    { name = "openapi-mcp", specifier = ">=0.1.0,<1" },
-    { name = "python-dotenv", specifier = ">=1.1.0,<2" },
-    { name = "typing-extensions", specifier = ">=4.14.0,<5" },
-]
-provides-extras = ["langgraph"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mcp-kit", extras = ["langgraph"] },
-    { name = "pre-commit", specifier = ">=4.2.0" },
-    { name = "pytest", specifier = ">=8.4.0,<9" },
-    { name = "pytest-asyncio", specifier = ">=1.0.0" },
-    { name = "pytest-cov", specifier = ">=6.2.1" },
+sdist = { url = "https://files.pythonhosted.org/packages/92/8a/c423da47b3c96c2b31f6ad55d9c4c1f21fac447b424d985923716099ead4/mcp_kit-0.1.2.tar.gz", hash = "sha256:b1d223c28a185d2ece112e5cb99abe356897455ff3e0e3627fd3ee7325b14245", size = 1065997, upload-time = "2025-06-17T20:29:14.471Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/58/8f02f99faab51bda97f93ec6469c8e1bb2b3fbcabf10b8b4896b4c1882c5/mcp_kit-0.1.2-py3-none-any.whl", hash = "sha256:d704e4dbdfe02d999f4f508e88f280f1b8596859db2e72b8c1a494f51861e10d", size = 24927, upload-time = "2025-06-17T20:29:12.564Z" },
 ]
 
 [[package]]

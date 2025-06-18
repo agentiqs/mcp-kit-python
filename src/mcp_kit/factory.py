@@ -3,17 +3,19 @@ This module provides a central registry to avoid circular imports and supports
 both Target and ResponseGenerator creation.
 """
 
+from __future__ import annotations
+
 import importlib
 from collections.abc import Callable
-from typing import TypeVar
+from typing import Any, cast
 
 from mcp import Tool
 from mcp.types import ToolAnnotations
 from omegaconf import DictConfig, ListConfig, OmegaConf
 
+from mcp_kit.generators import ResponseGenerator
 from mcp_kit.mixins import ConfigurableMixin
-
-T = TypeVar("T", bound=ConfigurableMixin)
+from mcp_kit.targets import Target
 
 
 def create_object_from_config(
@@ -21,7 +23,7 @@ def create_object_from_config(
     get_class_name: Callable[[str], str],
     get_module_name: Callable[[str], str],
     object_type_name: str = "object",
-) -> T:  # type: ignore
+) -> Any:
     """Generic factory function to create any object instance from configuration using reflection.
 
     :param config: Configuration from OmegaConf with a 'type' field
@@ -47,7 +49,7 @@ def create_object_from_config(
         module = importlib.import_module(module_name)
 
         # Get the class from the module
-        object_class: T = getattr(module, class_name)
+        object_class: ConfigurableMixin = getattr(module, class_name)
 
         # Create instance from config
         return object_class.from_config(config)
@@ -66,34 +68,39 @@ def create_object_from_config(
         ) from e
 
 
-def create_target_from_config(config: DictConfig):
+def create_target_from_config(config: DictConfig) -> Target:
     """Factory function to create any Target instance from configuration using reflection.
 
     :param config: Target configuration from OmegaConf
     :return: Target instance
     :raises ValueError: If target type is unknown or cannot be instantiated
     """
-    return create_object_from_config(
-        config,
-        get_class_name=lambda target_type: target_type.capitalize() + "Target",
-        get_module_name=lambda target_type: f"mcp_kit.targets.{target_type}",
-        object_type_name="target",
+    return cast(
+        Target,
+        create_object_from_config(
+            config,
+            get_class_name=lambda target_type: target_type.capitalize() + "Target",
+            get_module_name=lambda target_type: f"mcp_kit.targets.{target_type}",
+            object_type_name="target",
+        ),
     )
 
 
-def create_response_generator_from_config(config: DictConfig):
+def create_response_generator_from_config(config: DictConfig) -> ResponseGenerator:
     """Factory function to create any ResponseGenerator instance from configuration using reflection.
 
     :param config: ResponseGenerator configuration from OmegaConf
     :return: ResponseGenerator instance
     :raises ValueError: If generator type is unknown or cannot be instantiated
     """
-    return create_object_from_config(
-        config,
-        get_class_name=lambda generator_type: generator_type.capitalize()
-        + "ResponseGenerator",
-        get_module_name=lambda generator_type: f"mcp_kit.generators.{generator_type}",
-        object_type_name="generator",
+    return cast(
+        ResponseGenerator,
+        create_object_from_config(
+            config,
+            get_class_name=lambda generator_type: generator_type.capitalize() + "ResponseGenerator",
+            get_module_name=lambda generator_type: f"mcp_kit.generators.{generator_type}",
+            object_type_name="generator",
+        ),
     )
 
 
@@ -126,9 +133,7 @@ def create_tools_from_config(config: DictConfig) -> list[Tool] | None:
         tool = Tool(
             name=tool_config.name,
             description=tool_config.description,
-            inputSchema=OmegaConf.to_object(input_schema)
-            if isinstance(input_schema, DictConfig)
-            else input_schema,  # type: ignore[arg-type]
+            inputSchema=OmegaConf.to_object(input_schema) if isinstance(input_schema, DictConfig) else input_schema,  # type: ignore[arg-type]
             annotations=annotations,
         )
         tools.append(tool)

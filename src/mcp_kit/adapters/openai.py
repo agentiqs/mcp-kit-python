@@ -25,7 +25,7 @@ class OpenAIMCPServerAdapter:
         """
         self.target = target
 
-    async def connect(self):
+    async def connect(self) -> None:
         """Connect to the server.
 
         This might involve spawning a subprocess or opening a network connection.
@@ -41,7 +41,7 @@ class OpenAIMCPServerAdapter:
         """
         return self.target.name
 
-    async def cleanup(self):
+    async def cleanup(self) -> None:
         """Cleanup the server.
 
         This might involve closing a subprocess or closing a network connection.

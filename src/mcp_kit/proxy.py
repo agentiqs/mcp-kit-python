@@ -50,7 +50,7 @@ class ProxyMCP:
         return cls(target)
 
     @asynccontextmanager
-    async def client_session_adapter(self) -> AsyncIterator:
+    async def client_session_adapter(self) -> AsyncIterator[Any]:
         """Create a client session adapter for the target.
 
         Provides a context manager that yields a ClientSessionAdapter for
@@ -65,7 +65,7 @@ class ProxyMCP:
             await self.target.close()
 
     @asynccontextmanager
-    async def openai_agents_mcp_server(self) -> AsyncIterator:
+    async def openai_agents_mcp_server(self) -> AsyncIterator[Any]:
         """Convert the target to an OpenAI Agents MCP server.
 
         Provides a context manager that yields an OpenAI Agents SDK compatible
@@ -81,7 +81,7 @@ class ProxyMCP:
             await adapter.cleanup()
 
     @asynccontextmanager
-    async def official_mcp_server(self) -> AsyncIterator[Server]:
+    async def official_mcp_server(self) -> AsyncIterator[Server[Any]]:
         """Convert the target to an official MCP server.
 
         Creates a standard MCP Server instance that wraps the target,
@@ -92,9 +92,9 @@ class ProxyMCP:
         await self.target.initialize()
 
         try:
-            wrapped_mcp = Server(self.target.name)
+            wrapped_mcp: Server[Any] = Server(self.target.name)
 
-            @wrapped_mcp.list_tools()
+            @wrapped_mcp.list_tools()  # type: ignore[no-untyped-call, misc]
             async def handle_list_tools() -> list[Tool]:
                 """Handle list_tools requests for the wrapped server.
 
@@ -102,7 +102,7 @@ class ProxyMCP:
                 """
                 return await self.target.list_tools()
 
-            @wrapped_mcp.call_tool()
+            @wrapped_mcp.call_tool()  # type: ignore[no-untyped-call, misc]
             async def handle_call_tool(
                 name: str,
                 arguments: dict[str, Any],
@@ -119,7 +119,7 @@ class ProxyMCP:
         finally:
             await self.target.close()
 
-    def langgraph_multi_server_mcp_client(self):
+    def langgraph_multi_server_mcp_client(self) -> Any:
         """Convert the target to a LangGraph-compatible multi-server MCP client.
 
         This provides an interface similar to MultiServerMCPClient from langchain-mcp-adapters
