@@ -66,7 +66,7 @@ def create_object_from_config(
         ) from e
 
 
-def create_target_from_config(config: DictConfig):
+def create_target_from_config(config: DictConfig) -> object:
     """Factory function to create any Target instance from configuration using reflection.
 
     :param config: Target configuration from OmegaConf
@@ -81,7 +81,7 @@ def create_target_from_config(config: DictConfig):
     )
 
 
-def create_response_generator_from_config(config: DictConfig):
+def create_response_generator_from_config(config: DictConfig) -> object:
     """Factory function to create any ResponseGenerator instance from configuration using reflection.
 
     :param config: ResponseGenerator configuration from OmegaConf
@@ -90,8 +90,7 @@ def create_response_generator_from_config(config: DictConfig):
     """
     return create_object_from_config(
         config,
-        get_class_name=lambda generator_type: generator_type.capitalize()
-        + "ResponseGenerator",
+        get_class_name=lambda generator_type: generator_type.capitalize() + "ResponseGenerator",
         get_module_name=lambda generator_type: f"mcp_kit.generators.{generator_type}",
         object_type_name="generator",
     )
@@ -126,9 +125,7 @@ def create_tools_from_config(config: DictConfig) -> list[Tool] | None:
         tool = Tool(
             name=tool_config.name,
             description=tool_config.description,
-            inputSchema=OmegaConf.to_object(input_schema)
-            if isinstance(input_schema, DictConfig)
-            else input_schema,  # type: ignore[arg-type]
+            inputSchema=OmegaConf.to_object(input_schema) if isinstance(input_schema, DictConfig) else input_schema,  # type: ignore[arg-type]
             annotations=annotations,
         )
         tools.append(tool)

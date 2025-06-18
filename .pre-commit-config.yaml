@@ -19,7 +19,5 @@ repos:
       # Run the linter.
       - id: ruff-check
         args: [--fix]
-        # Configuration is now in pyproject.toml [tool.ruff]
       # Run the formatter.
       - id: ruff-format
-        # Configuration is now in pyproject.toml [tool.ruff]

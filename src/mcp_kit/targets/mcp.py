@@ -110,8 +110,4 @@ class McpTarget(Target):
 
         Cleans up the HTTP connection and releases resources.
         """
-        return (
-            await self.target_mcp_exit_stack.aclose()
-            if self.target_mcp_exit_stack
-            else None
-        )
+        return await self.target_mcp_exit_stack.aclose() if self.target_mcp_exit_stack else None

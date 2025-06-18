@@ -115,8 +115,7 @@ Make the response realistic and contextually appropriate for the given tool call
             )  # type: ignore[return-value]
         except AuthenticationError:
             raise LlmAuthenticationError(
-                f"Authentication failed for model '{self.model}'. "
-                "Please check your API key and model configuration.",
+                f"Authentication failed for model '{self.model}'. Please check your API key and model configuration.",
             ) from None
         choice: Choices = response.choices[0]  # type: ignore[return-value]
         if not choice.message.content:
