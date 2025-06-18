@@ -3,7 +3,7 @@
 from contextlib import AsyncExitStack
 from typing import Any
 
-from mcp import Tool
+from mcp import ClientSession, Tool
 from mcp.types import Content
 from omegaconf import DictConfig
 from typing_extensions import Self
@@ -38,7 +38,7 @@ class McpTarget(Target):
         self.url = url
         self.headers = headers
         self.tools = tools
-        self.target_mcp = None
+        self.target_mcp: ClientSession | None = None
         self.target_mcp_exit_stack: AsyncExitStack | None = None
 
     @property

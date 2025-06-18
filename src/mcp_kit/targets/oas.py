@@ -12,7 +12,7 @@ from mcp.server.session import ServerSessionT
 from mcp.shared.context import LifespanContextT
 from mcp.types import Content
 from omegaconf import DictConfig
-from openapi_mcp import create_mcp_server
+from openapi_mcp import create_mcp_server  #  type: ignore[import-untyped]
 from typing_extensions import Self
 
 from mcp_kit.targets.interfaces import Target
@@ -80,7 +80,7 @@ class OasTarget(Target):
             arguments["kwargs"] = {}
             return await call_tool(name, arguments, context)
 
-        self._fast_mcp._tool_manager.call_tool = call_tool_with_kwargs
+        setattr(self._fast_mcp._tool_manager, "call_tool", call_tool_with_kwargs)
 
     async def list_tools(self) -> list[Tool]:
         """List all tools generated from the OpenAPI specification.
