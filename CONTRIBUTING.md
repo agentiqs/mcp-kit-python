@@ -21,7 +21,7 @@ uv run pre-commit install
 ## Development Workflow
 
 1. Choose the correct branch for your changes:
-   - For bug fixes to a released version: use the latest release branch (e.g. v1.1.x for 1.1.3)
+   - For bug fixes to a released version: use the latest release branch (e.g. release/v1.1.x for 1.1.3)
    - For new features: use the main branch (which will become the next minor/major version)
    - If unsure, ask in an issue first
 
@@ -51,7 +51,7 @@ uv run pre-commit run --all-files
 ```
    Note: Pre-commit hooks will automatically run on staged files when you commit.
 
-8. Submit a pull request to the same branch you branched from
+8. Submit a pull request to the same branch you branched from.
 
 ## Code Style
 
