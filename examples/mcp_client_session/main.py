@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 
-async def run_workflow(session, initial_prompt: str):
+async def run_workflow(session, initial_prompt: str) -> None:  # type: ignore[no-untyped-def]
     """Main function to run Claude with MCP tools."""
     model = "claude-3-5-haiku-20241022"
     messages: list[dict[str, Any]] = [{"role": "user", "content": initial_prompt}]
@@ -33,9 +33,7 @@ async def run_workflow(session, initial_prompt: str):
     anthropic = Anthropic()
 
     # Initial Claude API call
-    response = anthropic.messages.create(
-        model=model, max_tokens=1000, messages=messages, tools=available_tools
-    )
+    response = anthropic.messages.create(model=model, max_tokens=1000, messages=messages, tools=available_tools)
 
     # Process response and handle tool calls
     final_text = []
@@ -70,9 +68,7 @@ async def run_workflow(session, initial_prompt: str):
             messages.append({"role": "assistant", "content": assistant_message_content})
             messages.append({"role": "user", "content": tool_results})
 
-            response = anthropic.messages.create(
-                model=model, max_tokens=1000, messages=messages, tools=available_tools
-            )
+            response = anthropic.messages.create(model=model, max_tokens=1000, messages=messages, tools=available_tools)
         else:
             # No more tool calls, we're done
             break
@@ -82,7 +78,7 @@ async def run_workflow(session, initial_prompt: str):
     logger.info(f"Task completed:\n{result}")
 
 
-async def main():
+async def main() -> None:
     # Create ProxyMCP and get tools compatible with the official MCP Client Session
     async with ProxyMCP.from_config(
         "proxy_config.yaml",

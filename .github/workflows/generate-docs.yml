@@ -6,49 +6,49 @@ on:
     paths:
       - 'src/**'
       - 'docs/**'
-      - '.docs-syncer/**'
+      - 'docs_syncer/**'
       - '.github/workflows/generate-docs.yml'
   workflow_dispatch:
 
 jobs:
   generate-docs:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout mcp-kit-python repository
       uses: actions/checkout@v4
       with:
         path: mcp-kit-python
-        
+
     - name: Checkout docs repository
       uses: actions/checkout@v4
       with:
         repository: agentiqs/docs
         path: website
         token: ${{ secrets.DOCS_REPO_TOKEN }}
-        
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.12'
-        
+
     - name: Install uv
       uses: astral-sh/setup-uv@v4
       with:
         enable-cache: true
-        
+
     - name: Cache uv dependencies
       uses: actions/cache@v4
       with:
         path: |
-          mcp-kit-python/.docs-syncer/.venv
+          mcp-kit-python/docs_syncer/.venv
           ~/.cache/uv
-        key: ${{ runner.os }}-uv-docs-${{ hashFiles('mcp-kit-python/.docs-syncer/uv.lock') }}
+        key: ${{ runner.os }}-uv-docs-${{ hashFiles('mcp-kit-python/docs_syncer/uv.lock') }}
         restore-keys: |
           ${{ runner.os }}-uv-docs-
-        
+
     - name: Install documentation dependencies
-      working-directory: mcp-kit-python/.docs-syncer
+      working-directory: mcp-kit-python/docs_syncer
       run: |
         echo "🔍 Checking for cached virtual environment..."
         if [ -d ".venv" ]; then
@@ -60,23 +60,23 @@ jobs:
         uv sync
         echo "📋 Installed packages:"
         uv tree
-        
+
     - name: Generate documentation
-      working-directory: mcp-kit-python/.docs-syncer
+      working-directory: mcp-kit-python/docs_syncer
       run: |
         echo "🚀 Generating comprehensive documentation (API reference + user guide)..."
         uv run python generator.py
-        
+
     - name: Check for changes in docs
       id: check_changes
       working-directory: website
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
+
         # Add all Python SDK documentation changes
         git add docs/python-sdk/
-        
+
         if git diff --staged --quiet; then
           echo "changes=false" >> $GITHUB_OUTPUT
           echo "ℹ️  No documentation changes detected"
@@ -85,24 +85,24 @@ jobs:
           echo "📝 Documentation changes detected:"
           git diff --staged --name-only | head -20
         fi
-        
+
     - name: Commit and push documentation changes
       if: steps.check_changes.outputs.changes == 'true'
       working-directory: website
       run: |
         echo "📝 Committing documentation changes..."
-        
+
         # Create comprehensive commit message
         CHANGED_FILES=$(git diff --staged --name-only | wc -l)
         COMMIT_MSG="📚 Update Python SDK documentation from mcp-kit-python@${{ github.sha }}
 
         Files changed: $CHANGED_FILES
         Source commit: https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
-        
+
         git commit -m "$COMMIT_MSG"
         git push
         echo "✅ Documentation successfully updated!"
-        
+
     - name: Create Pull Request (alternative to direct push)
       if: steps.check_changes.outputs.changes == 'true' && false  # Disabled by default
       working-directory: website
