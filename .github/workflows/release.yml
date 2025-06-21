@@ -24,8 +24,6 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Skip if this is a changelog-only commit from the release bot
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -98,12 +96,9 @@ jobs:
       - name: Build package
         run: uv build
 
-      - name: Generate changelog
+      - name: Generate release notes
         id: changelog
         run: |
-          VERSION="${{ steps.version.outputs.version_without_v }}"
-          RELEASE_DATE=$(date +%Y-%m-%d)
-
           # Get commits since last tag
           LAST_TAG=$(git tag --sort=-version:refname | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$" | head -n2 | tail -n1)
           if [ -z "$LAST_TAG" ]; then
@@ -120,36 +115,6 @@ jobs:
 
           **Full Changelog**: https://github.com/${{ github.repository }}/compare/${LAST_TAG}...${{ steps.version.outputs.version }}
           EOF
-
-          # Update CHANGELOG.md
-          if [ -f "CHANGELOG.md" ]; then
-            # Create a temporary file with the updated changelog
-            cat > TEMP_CHANGELOG.md << EOF
-          # Changelog
-
-          All notable changes to this project will be documented in this file.
-
-          The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-          and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-          ## [${VERSION}] - ${RELEASE_DATE}
-
-          ### Changed
-          ${COMMITS}
-
-          EOF
-
-            # Append the rest of the existing changelog (skip header and [Unreleased] section)
-            sed -n '/^## \[.*\] - [0-9]/,$p' CHANGELOG.md >> TEMP_CHANGELOG.md
-            mv TEMP_CHANGELOG.md CHANGELOG.md
-
-            # Commit the updated changelog
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add CHANGELOG.md
-            git commit -m "Update CHANGELOG.md for release ${VERSION} [skip ci]" || echo "No changelog changes to commit"
-            git push origin HEAD
-          fi
 
           echo "changelog_file=RELEASE_NOTES.md" >> $GITHUB_OUTPUT
 
