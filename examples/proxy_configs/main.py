@@ -12,92 +12,52 @@ from mcp_kit import ProxyMCP
 
 
 async def main():
-    """Demonstrate ProxyMCP.from_config() usage with different target types."""
-    # Example 1: MCP Target
-    print("=== MCP Target Example ===")
-    try:
-        mcp_proxy = ProxyMCP.from_config("examples/proxy_configs/mcp_target.yaml")
-        print(f"Created MCP proxy with target: {mcp_proxy.target.name}")
-        print(f"Target type: {type(mcp_proxy.target).__name__}")
-    except Exception as e:
-        print(f"Error creating MCP proxy: {e}")
-
-    # Example 2: OAS Target
-    print("\n=== OAS Target Example ===")
-    try:
-        oas_proxy = ProxyMCP.from_config("examples/proxy_configs/oas_target.yaml")
-        print(f"Created OAS proxy with target: {oas_proxy.target.name}")
-        print(f"Target type: {type(oas_proxy.target).__name__}")
-    except Exception as e:
-        print(f"Error creating OAS proxy: {e}")
-
-    # Example 3: Mocked Target with Random Generator
-    print("\n=== Mocked Target (Random) Example ===")
-    try:
-        mocked_proxy = ProxyMCP.from_config(
-            "examples/proxy_configs/mocked_random_target.yaml",
-        )
-        print(f"Created Mocked proxy with target: {mocked_proxy.target.name}")
-        print(f"Target type: {type(mocked_proxy.target).__name__}")
-        print(f"Base target type: {type(mocked_proxy.target.target).__name__}")  # type: ignore
-        print(
-            f"Generator type: {type(mocked_proxy.target.mock_config.response_generator).__name__}",
-        )  # type: ignore
-    except Exception as e:
-        print(f"Error creating Mocked proxy: {e}")
-
-    # Example 4: Mocked Target with LLM Generator
-    print("\n=== Mocked Target (LLM) Example ===")
-    try:
-        mocked_llm_proxy = ProxyMCP.from_config(
-            "examples/proxy_configs/mocked_llm_target.yaml",
-        )
-        print(f"Created Mocked LLM proxy with target: {mocked_llm_proxy.target.name}")
-        print(f"Target type: {type(mocked_llm_proxy.target).__name__}")
-        print(f"Base target type: {type(mocked_llm_proxy.target.target).__name__}")  # type: ignore
-        print(
-            f"Generator type: {type(mocked_llm_proxy.target.mock_config.response_generator).__name__}",
-        )  # type: ignore
-    except Exception as e:
-        print(f"Error creating Mocked LLM proxy: {e}")
-
-    # Example 5: Multiplex Target
-    print("\n=== Multiplex Target Example ===")
-    try:
-        multiplex_proxy = ProxyMCP.from_config(
-            "examples/proxy_configs/multiplex_target.yaml",
-        )
-        print(f"Created Multiplex proxy with target: {multiplex_proxy.target.name}")
-        print(f"Target type: {type(multiplex_proxy.target).__name__}")
-        print(f"Number of sub-targets: {len(multiplex_proxy.target._targets_dict)}")  # type: ignore
-        for i, (name, target) in enumerate(
-            multiplex_proxy.target._targets_dict.items(),
-        ):  # type: ignore
-            print(
-                f"  Sub-target {i + 1}: {name} -> {target.name} ({type(target).__name__})",
-            )
-    except Exception as e:
-        print(f"Error creating Multiplex proxy: {e}")
-
-    # Example 6: JSON Configuration
-    print("\n=== JSON Configuration Example ===")
-    try:
-        json_proxy = ProxyMCP.from_config("examples/proxy_configs/mcp_target.json")
-        print(f"Created JSON proxy with target: {json_proxy.target.name}")
-        print(f"Target type: {type(json_proxy.target).__name__}")
-    except Exception as e:
-        print(f"Error creating JSON proxy: {e}")
-
-    # Example 7: Using pathlib.Path
-    print("\n=== Pathlib.Path Example ===")
-    try:
-        config_path = Path("examples/proxy_configs/mcp_target.yaml")
-        path_proxy = ProxyMCP.from_config(config_path)
-        print(f"Created proxy from Path with target: {path_proxy.target.name}")
-        print(f"Target type: {type(path_proxy.target).__name__}")
-    except Exception as e:
-        print(f"Error creating proxy from Path: {e}")
-
+    """Demonstrate ProxyMCP.from_config() usage with all configuration files in the directory."""
+    
+    # Find all configuration files in the proxy_configs directory
+    config_dir = Path(".")
+    config_files = []
+    
+    # Look for YAML and JSON files
+    for pattern in ["*.yaml", "*.yml", "*.json"]:
+        config_files.extend(config_dir.glob(pattern))
+    
+    # Sort for consistent output
+    config_files.sort()
+    
+    if not config_files:
+        print("❌ No configuration files found in examples/proxy_configs/")
+        raise SystemExit(1)
+    
+    print(f"Found {len(config_files)} configuration file(s):")
+    for config_file in config_files:
+        print(f"  - {config_file.name}")
+    print()
+    
+    # Test each configuration file
+    for i, config_file in enumerate(config_files, 1):
+        print(f"=== Configuration {i}/{len(config_files)}: {config_file.name} ===")
+        
+        proxy = ProxyMCP.from_config(config_file)
+        print(f"Created proxy with target: {proxy.target.name}")
+        print(f"Target type: {type(proxy.target).__name__}")
+        
+        # Show additional details for specific target types
+        if hasattr(proxy.target, 'target'):  # Mocked targets
+            print(f"Base target type: {type(proxy.target.target).__name__}")
+            if hasattr(proxy.target, 'mock_config'):
+                print(f"Generator type: {type(proxy.target.mock_config.response_generator).__name__}")
+        
+        if hasattr(proxy.target, '_targets_dict'):  # Multiplex targets
+            print(f"Number of sub-targets: {len(proxy.target._targets_dict)}")
+            for j, (name, target) in enumerate(proxy.target._targets_dict.items()):
+                print(f"  Sub-target {j + 1}: {name} -> {target.name} ({type(target).__name__})")
+        
+        print()
+    
+    print(f"✅ All {len(config_files)} configuration(s) parsed successfully!")
+    print("All proxy configurations are valid!")
+    
 
 if __name__ == "__main__":
     asyncio.run(main())

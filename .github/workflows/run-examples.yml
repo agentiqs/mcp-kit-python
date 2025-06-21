@@ -146,3 +146,29 @@ jobs:
           rm -f .env
           echo "🧹 Cleaned up .env file"
         fi
+
+  examples-summary:
+    runs-on: ubuntu-latest
+    needs: [discover-examples, run-examples]
+    if: always()  # Run even if some examples failed
+    steps:
+    - name: Check all examples passed
+      run: |
+        # Check if the run-examples job succeeded
+        if [ "${{ needs.run-examples.result }}" != "success" ]; then
+          echo "❌ Some examples failed or were cancelled"
+          echo "Examples job result: ${{ needs.run-examples.result }}"
+          exit 1
+        fi
+        
+        # Check if we actually found and ran examples
+        examples='${{ needs.discover-examples.outputs.examples }}'
+        example_count=$(echo "$examples" | jq length)
+        
+        if [ "$example_count" -eq 0 ]; then
+          echo "⚠️ No examples were found to run"
+          exit 1
+        fi
+        
+        echo "✅ All $example_count examples passed successfully!"
+        echo "Examples run: $examples"
