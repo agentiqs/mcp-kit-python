@@ -16,6 +16,24 @@ Automatically generates comprehensive documentation for the mcp-kit Python SDK a
 - `examples/` - Example projects with README.md files that get auto-documented
 - Generated files go to the separate `agentiqs/docs` repository
 
+## Local Development
+
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management:
+
+```bash
+# Install dependencies
+uv sync
+
+# Run the documentation generator
+uv run python generator.py
+
+# Run tests (if any)
+uv run pytest
+
+# Run type checking
+uv run mypy generator.py
+```
+
 ## Setup
 Set `DOCS_REPO_TOKEN` secret (see [GITHUB_SETUP.md](./GITHUB_SETUP.md)) and commit to main.
 
