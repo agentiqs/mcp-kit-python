@@ -19,14 +19,62 @@ jobs:
     - name: Find example directories
       id: find-examples
       run: |
-        # Find all directories in examples/ that have both pyproject.toml and main.py
-        examples=$(find examples -maxdepth 1 -type d -name "*" | while read dir; do
-          if [ "$dir" != "examples" ] && [ -f "$dir/pyproject.toml" ] && [ -f "$dir/main.py" ]; then
-            basename "$dir"
-          fi
-        done | jq -R -s -c 'split("\n")[:-1]')
+        # Find all directories in examples/ and validate they have required files
+        valid_examples=()
+        invalid_examples=()
         
-        echo "Found examples: $examples"
+        for dir in examples/*/; do
+          if [ "$dir" = "examples/*/" ]; then
+            # No subdirectories found
+            continue
+          fi
+          
+          example_name=$(basename "$dir")
+          has_pyproject=false
+          has_main=false
+          
+          if [ -f "$dir/pyproject.toml" ]; then
+            has_pyproject=true
+          fi
+          
+          if [ -f "$dir/main.py" ]; then
+            has_main=true
+          fi
+          
+          if [ "$has_pyproject" = true ] && [ "$has_main" = true ]; then
+            valid_examples+=("$example_name")
+            echo "✅ $example_name: has both pyproject.toml and main.py"
+          else
+            invalid_examples+=("$example_name")
+            echo "❌ $example_name: missing files -"
+            if [ "$has_pyproject" = false ]; then
+              echo "   - pyproject.toml not found"
+            fi
+            if [ "$has_main" = false ]; then
+              echo "   - main.py not found"
+            fi
+          fi
+        done
+        
+        # Fail if any examples are invalid
+        if [ ${#invalid_examples[@]} -gt 0 ]; then
+          echo ""
+          echo "💥 Found invalid example directories:"
+          printf '   - %s\n' "${invalid_examples[@]}"
+          echo ""
+          echo "All example directories must contain both pyproject.toml and main.py"
+          exit 1
+        fi
+        
+        # Convert valid examples to JSON array
+        if [ ${#valid_examples[@]} -eq 0 ]; then
+          echo "⚠️ No valid examples found"
+          examples="[]"
+        else
+          examples=$(printf '%s\n' "${valid_examples[@]}" | jq -R -s -c 'split("\n")[:-1]')
+        fi
+        
+        echo "Found valid examples: $examples"
         echo "examples=$examples" >> $GITHUB_OUTPUT
 
   run-examples:
@@ -64,9 +112,9 @@ jobs:
           cp .env.example .env
           
           # Replace all API key placeholders regardless of which example this is
-          if [ -n "${{ secrets.GOOGLE_API_KEY }}" ]; then
-            sed -i 's/your_google_api_key_here/${{ secrets.GOOGLE_API_KEY }}/g' .env
-            echo "✅ Set GOOGLE_API_KEY"
+          if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
+            sed -i 's/your_gemini_api_key_here/${{ secrets.GEMINI_API_KEY }}/g' .env
+            echo "✅ Set GEMINI_API_KEY"
           fi
           
           if [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ]; then

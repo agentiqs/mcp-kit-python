@@ -1,0 +1,22 @@
+[project]
+name = "examples-proxy-configs"
+version = "0.1.2"
+description = "MCP Kit Proxy Configs Example"
+readme = "README.md"
+authors = [
+    { name = "Agentiqs", email = "support@agentiqs.ai" }
+]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "mcp-kit==0.1.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["examples/proxy_configs"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
