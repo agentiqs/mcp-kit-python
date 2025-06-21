@@ -51,7 +51,7 @@ uv run pre-commit run --all-files
 ```
    Note: Pre-commit hooks will automatically run on staged files when you commit.
 
-8. Submit a pull request to the same branch you branched from
+8. Submit a pull request to the same branch you branched from.
 
 ## Code Style
 
