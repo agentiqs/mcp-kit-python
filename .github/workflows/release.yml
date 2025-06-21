@@ -50,17 +50,12 @@ jobs:
               MINOR=${BASH_REMATCH[2]}
 
               # Find the latest patch version for this major.minor
-<<<<<<< Updated upstream
-              LATEST_PATCH=$(git tag -l "v${MAJOR}.${MINOR}.*" --sort=-version:refname | head -n1 | sed 's/v[0-9]*\.[0-9]*\.//' || echo "-1")
-              NEXT_PATCH=$((LATEST_PATCH + 1))
-=======
               LATEST_PATCH=$(git tag -l "v${MAJOR}.${MINOR}.*" --sort=-version:refname | head -n1 | sed 's/v[0-9]*\.[0-9]*\.//')
               if [ -z "$LATEST_PATCH" ]; then
                 NEXT_PATCH=0
               else
                 NEXT_PATCH=$((LATEST_PATCH + 1))
               fi
->>>>>>> Stashed changes
               VERSION="v${MAJOR}.${MINOR}.${NEXT_PATCH}"
             else
               echo "Invalid branch name format. Expected: release/v{major}.{minor}.x"
