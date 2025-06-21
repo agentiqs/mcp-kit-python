@@ -61,6 +61,8 @@ source = "uv-dynamic-versioning"
 vcs = "git"
 style = "pep440"
 bump = true
+# Ensure clean versions for tagged releases
+local-scheme = "no-local-version"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mcp_kit"]
