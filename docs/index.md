@@ -1,10 +1,11 @@
 ---
 sidebar_position: 1
+# This file was auto-generated and should not be edited manually
 ---
 
 # Introduction
 
-Welcome to MCP Kit, a powerful Python SDK developing and optimizing multi-agent AI systems.
+Welcome to MCP Kit, a powerful Python SDK for developing and optimizing multi-agent AI systems.
 
 ## What is MCP Kit?
 
@@ -123,8 +124,8 @@ The diagram above illustrates the core components and extensibility points of MC
 
 ## Next Steps
 
-- [Installation Guide](./installation.md) - Get up and running
-- [Configuration](./configuration.md) - Learn about proxy configs
-- [Adapters](./adapters.md) - Framework integrations
-- [Examples](/docs/python-sdk/examples) - Real-world usage examples
-- [API Reference](/docs/python-sdk/reference/) - Complete API documentation
+- [Installation Guide](./user-guide/installation.md) - Get up and running
+- [Configuration](./user-guide/configuration.md) - Learn about proxy configs
+- [Adapters](./user-guide/adapters.md) - Framework integrations
+- [Examples](./examples/index.mdx) - Real-world usage examples
+- [API Reference](./reference/mcp_kit/index.md) - Complete API documentation

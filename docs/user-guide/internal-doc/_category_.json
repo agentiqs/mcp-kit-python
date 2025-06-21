@@ -1,8 +1,0 @@
-{
-  "label": "Internal documentation",
-  "position": 5,
-  "link": {
-    "type": "generated-index",
-    "description": "Internal technical documentation for mcp-kit Python SDK."
-  }
-}

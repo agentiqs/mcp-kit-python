@@ -44,9 +44,9 @@ class DocGenerator:
         self.website_dir = workspace_root / "website"
 
         # For user guide, reference, and examples docs
-        self.user_guide_dir = self.website_dir / "docs" / "python-sdk" / "user-guide"
-        self.reference_dir = self.website_dir / "docs" / "python-sdk" / "reference"
-        self.examples_dir = self.website_dir / "docs" / "python-sdk" / "examples"
+        self.user_guide_dir = self.website_dir / "mcp-kit-python" / "docs" / "user-guide"
+        self.reference_dir = self.website_dir / "mcp-kit-python" / "docs" / "reference"
+        self.examples_dir = self.website_dir / "mcp-kit-python" / "docs" / "examples"
 
         # Source directories
         self.source_user_guide = self.docs_dir / "user-guide"
@@ -152,10 +152,10 @@ class DocGenerator:
         print("📁 Copying _category_.json files...")
 
         try:
-            # Main python-sdk _category_.json
+            # Main mcp-kit-python/docs _category_.json
             main_category = self.docs_dir / "_category_.json"
             if main_category.exists():
-                dest_dir = self.website_dir / "docs" / "python-sdk"
+                dest_dir = self.website_dir / "mcp-kit-python" / "docs"
                 dest_dir.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(main_category, dest_dir / "_category_.json")
                 print("   📄 Copied main _category_.json")
@@ -418,26 +418,27 @@ class DocGenerator:
             return True  # Not an error, just no examples docs
 
         try:
-            # Copy all markdown files from docs/examples directory (like index.md)
-            for md_file in self.source_examples.rglob("*.md"):
-                # Skip files using centralized check
-                if self._should_skip_file(md_file):
-                    continue
+            # Copy all markdown files from docs/examples directory (like index.md, index.mdx)
+            for pattern in ["*.md", "*.mdx"]:
+                for md_file in self.source_examples.rglob(pattern):
+                    # Skip files using centralized check
+                    if self._should_skip_file(md_file):
+                        continue
 
-                # Preserve directory structure
-                relative_path = md_file.relative_to(self.source_examples)
-                dest_file = self.examples_dir / relative_path
+                    # Preserve directory structure
+                    relative_path = md_file.relative_to(self.source_examples)
+                    dest_file = self.examples_dir / relative_path
 
-                # Create destination directory if needed
-                dest_file.parent.mkdir(parents=True, exist_ok=True)
+                    # Create destination directory if needed
+                    dest_file.parent.mkdir(parents=True, exist_ok=True)
 
-                # Copy file
-                shutil.copy2(md_file, dest_file)
+                    # Copy file
+                    shutil.copy2(md_file, dest_file)
 
-                # Add autogeneration comment
-                self.add_autogeneration_comment(dest_file)
+                    # Add autogeneration comment
+                    self.add_autogeneration_comment(dest_file)
 
-                print(f"   📄 Copied examples/{relative_path}")
+                    print(f"   📄 Copied examples/{relative_path}")
 
             # Copy image assets (PNG, SVG, JPG, JPEG, GIF, WebP)
             image_extensions = [
@@ -660,7 +661,7 @@ sidebar_position: {sidebar_position}
 
             # Run pydoc-markdown with verbose output
             _ = subprocess.run(
-                ["pydoc-markdown", "--verbose", "pydoc-markdown.yml"],
+                ["uv", "run", "pydoc-markdown", "--verbose", "pydoc-markdown.yml"],
                 check=True,
                 capture_output=True,
                 text=True,
@@ -711,7 +712,7 @@ sidebar_position: {sidebar_position}
             files["api_reference"] = list(self.reference_dir.rglob("*.md"))
 
         # Category files (both main and subdirectories)
-        sdk_dir = self.website_dir / "docs" / "python-sdk"
+        sdk_dir = self.website_dir / "mcp-kit-python" / "docs"
         if sdk_dir.exists():
             files["categories"] = list(sdk_dir.rglob("_category_.json"))
 
@@ -728,23 +729,27 @@ sidebar_position: {sidebar_position}
         if not self.copy_category_files():
             print("⚠️  Category file copying failed, continuing...")
 
-        # Step 3: Sync user documentation with comments
+        # Step 3: Sync root files (images, index.md, etc.)
+        if not self.sync_root_files():
+            print("⚠️  Root file sync failed, continuing...")
+
+        # Step 4: Sync user documentation with comments
         if not self.sync_user_documentation():
             print("⚠️  User documentation sync failed, continuing with API reference...")
 
-        # Step 4: Sync examples documentation
+        # Step 5: Sync examples documentation
         if not self.sync_examples_documentation():
             print("⚠️  Examples documentation sync failed, continuing...")
 
-        # Step 5: Generate API reference
+        # Step 6: Generate API reference
         if not self.generate_api_reference():
             print("❌ API reference generation failed")
             return False
-        # Step 6: Rename __init__.md files to index.md in reference section
+        # Step 7: Rename __init__.md files to index.md in reference section
         if not self.rename_init_files_to_index():
             print("⚠️  Renaming __init__.md files failed, continuing...")
 
-        # Step 7: Sync manual reference documentation
+        # Step 8: Sync manual reference documentation
         if not self.sync_reference_documentation():
             print("⚠️  Manual reference documentation sync failed, continuing...")
 
@@ -785,7 +790,7 @@ sidebar_position: {sidebar_position}
             if created_files["categories"]:
                 print(f"\n📁 Category Files ({len(created_files['categories'])} files):")
                 for file_path in created_files["categories"]:
-                    rel_path = file_path.relative_to(self.website_dir / "docs")
+                    rel_path = file_path.relative_to(self.website_dir)
                     print(f"   - {rel_path}")
 
         else:
@@ -906,6 +911,37 @@ sidebar_position: {sidebar_position}
             return 1
         else:
             return 0
+
+    def sync_root_files(self) -> bool:
+        """Sync top-level files (images, index.md, etc.) from docs root to mcp-kit-python/docs/."""
+        print("📄 Synchronizing root documentation files...")
+
+        try:
+            # Get the destination directory (mcp-kit-python/docs/)
+            dest_dir = self.website_dir / "mcp-kit-python" / "docs"
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            # Copy all files from docs root (excluding subdirectories and _category_.json which is handled separately)
+            for item in self.docs_dir.iterdir():
+                # Skip directories and _category_.json files (handled elsewhere)
+                if item.is_dir() or item.name.startswith("_category"):
+                    continue
+
+                # Skip files using centralized check
+                if self._should_skip_file(item):
+                    continue
+
+                # Copy the file
+                dest_file = dest_dir / item.name
+                shutil.copy2(item, dest_file)
+                print(f"   📄 Copied {item.name}")
+
+            print("✅ Root documentation files synchronized successfully!")
+            return True
+
+        except Exception as e:
+            print(f"❌ Error synchronizing root documentation files: {e}")
+            return False
 
 
 def main() -> None:

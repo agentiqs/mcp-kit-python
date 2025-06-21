@@ -74,8 +74,8 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
 
-        # Add all Python SDK documentation changes
-        git add docs/python-sdk/
+        # Add all mcp-kit-python documentation changes
+        git add mcp-kit-python/
 
         if git diff --staged --quiet; then
           echo "changes=false" >> $GITHUB_OUTPUT
@@ -94,7 +94,7 @@ jobs:
 
         # Create comprehensive commit message
         CHANGED_FILES=$(git diff --staged --name-only | wc -l)
-        COMMIT_MSG="📚 Update Python SDK documentation from mcp-kit-python@${{ github.sha }}
+        COMMIT_MSG="📚 Update mcp-kit-python documentation from mcp-kit-python@${{ github.sha }}
 
         Files changed: $CHANGED_FILES
         Source commit: https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
@@ -107,5 +107,5 @@ jobs:
       if: steps.check_changes.outputs.changes == 'true' && false  # Disabled by default
       working-directory: website
       run: |
-        git checkout -b update-python-sdk-docs-${{ github.run_number }}
-        git push origin update-python-sdk-docs-${{ github.run_number }}
+        git checkout -b update-mcp-kit-python-docs-${{ github.run_number }}
+        git push origin update-mcp-kit-python-docs-${{ github.run_number }}

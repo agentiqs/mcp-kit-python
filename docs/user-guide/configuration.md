@@ -1,5 +1,6 @@
 ---
 sidebar_position: 3
+# This file was auto-generated and should not be edited manually
 ---
 
 # Configuration
@@ -168,9 +169,9 @@ ANTHROPIC_API_KEY="your_api_key"
 
 ## Examples
 
-See the [Examples section](../examples/index.md) for real-world configuration examples.
+See the [Examples section](../examples) for real-world configuration examples.
 
 ## Next Steps
 
 - [Adapters Guide](./adapters.md) - Framework integrations
-- [Examples](../examples/index.md) - Real-world usage examples
+- [Examples](../examples) - Real-world usage examples
