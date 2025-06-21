@@ -85,15 +85,15 @@ jobs:
           uv run ruff check
           uv run ruff format --check
 
-      - name: Build package
-        run: uv build
-
       - name: Create and push tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag ${{ steps.version.outputs.version }}
           git push origin ${{ steps.version.outputs.version }}
+
+      - name: Build package
+        run: uv build
 
       - name: Generate changelog
         id: changelog
