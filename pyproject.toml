@@ -1,6 +1,6 @@
 [project]
 name = "mcp-kit"
-version = "0.1.2"
+dynamic = ["version"]
 description = "MCP tooling for developing and optimizing multi-agent AI systems."
 readme = "README.md"
 authors = [
@@ -51,8 +51,16 @@ Issues = "https://github.com/agentiqs/mcp-kit-python/issues"
 Changelog = "https://github.com/agentiqs/mcp-kit-python/blob/main/CHANGELOG.md"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv-dynamic-versioning]
+vcs = "git"
+style = "pep440"
+bump = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mcp_kit"]

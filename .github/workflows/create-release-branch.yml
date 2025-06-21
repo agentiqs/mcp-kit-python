@@ -1,0 +1,82 @@
+name: Create Release Branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v0.1.x, v0.2.x)'
+        required: true
+        type: string
+      base_branch:
+        description: 'Base branch to create release from'
+        required: false
+        default: 'main'
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-release-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.base_branch }}
+          fetch-depth: 0
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.x$ ]]; then
+            echo "Invalid version format. Expected: v{major}.{minor}.x (e.g., v0.1.x)"
+            exit 1
+          fi
+
+      - name: Create release branch
+        run: |
+          BRANCH_NAME="release/${{ github.event.inputs.version }}"
+
+          # Check if branch already exists
+          if git ls-remote --exit-code --heads origin $BRANCH_NAME; then
+            echo "Branch $BRANCH_NAME already exists!"
+            exit 1
+          fi
+
+          # Create and push branch
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b $BRANCH_NAME
+          git push origin $BRANCH_NAME
+
+          echo "Created release branch: $BRANCH_NAME"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: release/${{ github.event.inputs.version }}
+          base: ${{ github.event.inputs.base_branch }}
+          title: "Release ${{ github.event.inputs.version }}"
+          body: |
+            ## Release ${{ github.event.inputs.version }}
+
+            This PR creates a new release branch for version ${{ github.event.inputs.version }}.
+
+            ### Checklist before merging:
+            - [ ] All tests pass
+            - [ ] Documentation is updated
+            - [ ] CHANGELOG.md is updated
+            - [ ] Version is ready for release
+
+            ### What happens when merged:
+            - Release workflow will automatically trigger
+            - Git tag will be created automatically
+            - GitHub release will be created
+            - Package will be built and optionally published to PyPI
+
+            ### To release a specific patch version:
+            Use the manual workflow dispatch on the release workflow after merging this PR.
+          draft: true
