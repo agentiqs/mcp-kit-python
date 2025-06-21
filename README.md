@@ -372,7 +372,7 @@ mcp-kit-python/
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](https://github.com/agentiqs/mcp-kit-python/blob/main/docs/user-guide/contributing/index.md) for details.
+We welcome contributions! Please see our [Contributing Guide](https://github.com/agentiqs/mcp-kit-python/blob/main/CONTRIBUTING.md) for details.
 
 ### Development Setup
 

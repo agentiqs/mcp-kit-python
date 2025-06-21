@@ -25,21 +25,21 @@ class DocGenerator:
     directory to maintain proper documentation structure and avoid conflicts.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the documentation generator for CI environment."""
         # In GitHub Actions:
-        # Working directory: /home/runner/work/mcp-kit-python/mcp-kit-python/mcp-kit-python/.docs-syncer
+        # Working directory: /home/runner/work/mcp-kit-python/mcp-kit-python/mcp-kit-python/docs_syncer
         # Website directory:  /home/runner/work/mcp-kit-python/mcp-kit-python/website
         #
-        # From .docs-syncer/, we need: .docs-syncer/ -> mcp-kit-python/ -> mcp-kit-python/ -> website/
+        # From docs_syncer/, we need: docs_syncer/ -> mcp-kit-python/ -> mcp-kit-python/ -> website/
         # That's ../../website (2 levels up)
 
-        self.syncer_dir = Path(__file__).parent  # mcp-kit-python/.docs-syncer
+        self.syncer_dir = Path(__file__).parent  # mcp-kit-python/docs_syncer
         self.project_root = self.syncer_dir.parent  # mcp-kit-python/
         self.docs_dir = self.project_root / "docs"  # mcp-kit-python/docs
 
-        # Website directory is 2 levels up from .docs-syncer/ in GitHub Actions
-        # .docs-syncer/ -> mcp-kit-python/ -> mcp-kit-python/ -> website/
+        # Website directory is 2 levels up from docs_syncer/ in GitHub Actions
+        # docs_syncer/ -> mcp-kit-python/ -> mcp-kit-python/ -> website/
         workspace_root = self.syncer_dir.parent.parent  # Go up 2 levels
         self.website_dir = workspace_root / "website"
 
@@ -103,9 +103,7 @@ class DocGenerator:
         print("🧹 Cleaning existing documentation...")
 
         if not self.website_dir.exists():
-            print(
-                "⚠️  Website directory not found. Creating temporary directory for testing..."
-            )
+            print("⚠️  Website directory not found. Creating temporary directory for testing...")
             # Create a temporary directory structure for testing
             self.website_dir.mkdir(parents=True, exist_ok=True)
             print("✅ Created temporary website structure")
@@ -215,9 +213,7 @@ class DocGenerator:
             frontmatter_pattern = r"^---\n(.*?)\n---\n(.*)"
             match = re.match(frontmatter_pattern, content, re.DOTALL)
 
-            yaml_comment = (
-                "# This file was auto-generated and should not be edited manually"
-            )
+            yaml_comment = "# This file was auto-generated and should not be edited manually"
 
             if match:
                 # Extract existing frontmatter and body
@@ -501,11 +497,7 @@ class DocGenerator:
                 sidebar_position = 2  # Start after index.md
 
                 for subdir in sorted(examples_root.iterdir()):
-                    if (
-                        subdir.is_dir()
-                        and not subdir.name.startswith(".")
-                        and not subdir.name.startswith("__")
-                    ):
+                    if subdir.is_dir() and not subdir.name.startswith(".") and not subdir.name.startswith("__"):
                         readme_file = subdir / "README.md"
 
                         if readme_file.exists() and readme_file.stat().st_size > 0:
@@ -515,9 +507,7 @@ class DocGenerator:
 
                             # Remove any existing frontmatter from README
                             frontmatter_pattern = r"^---\n.*?\n---\n\n?"
-                            clean_content = re.sub(
-                                frontmatter_pattern, "", readme_content, flags=re.DOTALL
-                            )
+                            clean_content = re.sub(frontmatter_pattern, "", readme_content, flags=re.DOTALL)
 
                             # Add GitHub link after the first heading
                             github_link = f"**📂 [View Source Code](https://github.com/{GITHUB_ORG}/{GITHUB_REPO}/tree/{git_hash}/examples/{subdir.name})**\n\n"
@@ -528,10 +518,7 @@ class DocGenerator:
                                 # Find the end of the first heading section
                                 insert_position = 1
                                 # Skip any empty lines after the heading
-                                while (
-                                    insert_position < len(lines)
-                                    and lines[insert_position].strip() == ""
-                                ):
+                                while insert_position < len(lines) and lines[insert_position].strip() == "":
                                     insert_position += 1
 
                                 # Insert the GitHub link
@@ -557,15 +544,11 @@ sidebar_position: {sidebar_position}
                             with open(dest_file, "w", encoding="utf-8") as f:
                                 f.write(final_content)
 
-                            print(
-                                f"   📄 Generated examples/{dest_filename} from {subdir.name}/README.md"
-                            )
+                            print(f"   📄 Generated examples/{dest_filename} from {subdir.name}/README.md")
                             sidebar_position += 1
 
                         else:
-                            print(
-                                f"   ⚠️  Skipping {subdir.name} - no README.md or empty file"
-                            )
+                            print(f"   ⚠️  Skipping {subdir.name} - no README.md or empty file")
 
             print("✅ Examples documentation synchronized successfully!")
             return True
@@ -645,9 +628,7 @@ sidebar_position: {sidebar_position}
                 # Note: We don't add sidebar_position as Docusaurus autosidebar handles ordering
 
                 # Add autogeneration comment as YAML comment
-                fm_lines.append(
-                    "# This file was auto-generated and should not be edited manually"
-                )
+                fm_lines.append("# This file was auto-generated and should not be edited manually")
 
                 # Build new content
                 if fm_lines:
@@ -672,7 +653,7 @@ sidebar_position: {sidebar_position}
         """Generate API reference documentation using pydoc-markdown with DocusaurusRenderer."""
         print("📚 Generating API reference documentation...")
 
-        # Change to .docs-syncer directory for pydoc-markdown
+        # Change to docs_syncer directory for pydoc-markdown
         original_dir = os.getcwd()
         try:
             os.chdir(self.syncer_dir)
@@ -710,7 +691,7 @@ sidebar_position: {sidebar_position}
 
     def list_created_files(self) -> dict[str, list[Path]]:
         """List all documentation files that were created."""
-        files = {
+        files: dict[str, list[Path]] = {
             "user_guide": [],
             "examples": [],
             "api_reference": [],
@@ -796,17 +777,13 @@ sidebar_position: {sidebar_position}
                     print(f"   - examples/{rel_path}")
 
             if created_files["api_reference"]:
-                print(
-                    f"\n🔧 API Reference ({len(created_files['api_reference'])} files):"
-                )
+                print(f"\n🔧 API Reference ({len(created_files['api_reference'])} files):")
                 for file_path in sorted(created_files["api_reference"]):
                     rel_path = file_path.relative_to(self.reference_dir)
                     print(f"   - reference/{rel_path}")
 
             if created_files["categories"]:
-                print(
-                    f"\n📁 Category Files ({len(created_files['categories'])} files):"
-                )
+                print(f"\n📁 Category Files ({len(created_files['categories'])} files):")
                 for file_path in created_files["categories"]:
                     rel_path = file_path.relative_to(self.website_dir / "docs")
                     print(f"   - {rel_path}")
@@ -862,10 +839,7 @@ sidebar_position: {sidebar_position}
                                 next_heading_level = self._get_heading_level(next_line)
 
                                 # If we hit another heading of same or higher level, stop looking
-                                if (
-                                    next_heading_level > 0
-                                    and next_heading_level <= heading_level
-                                ):
+                                if next_heading_level > 0 and next_heading_level <= heading_level:
                                     break
 
                                 # If we find any non-empty content, this heading is not empty
@@ -901,9 +875,7 @@ sidebar_position: {sidebar_position}
                         content = new_content
                         # Log removed headings for this pass
                         for heading in removed_headings_this_pass:
-                            print(
-                                f"   🗑️  Removed empty heading: {heading} from {md_file.name}"
-                            )
+                            print(f"   🗑️  Removed empty heading: {heading} from {md_file.name}")
 
                 # Write the final content back to the file if changes were made
                 if content != original_content:
@@ -936,7 +908,7 @@ sidebar_position: {sidebar_position}
             return 0
 
 
-def main():
+def main() -> None:
     """CLI entry point for documentation generation."""
     generator = DocGenerator()
     success = generator.run()
