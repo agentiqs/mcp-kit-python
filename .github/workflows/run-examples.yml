@@ -3,8 +3,16 @@ name: Run Examples
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'examples/**'
+      - '.github/workflows/run-examples.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'examples/**'
+      - '.github/workflows/run-examples.yml'
   workflow_dispatch:
 
 jobs:
@@ -15,32 +23,32 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Find example directories
       id: find-examples
       run: |
         # Find all directories in examples/ and validate they have required files
         valid_examples=()
         invalid_examples=()
-        
+
         for dir in examples/*/; do
           if [ "$dir" = "examples/*/" ]; then
             # No subdirectories found
             continue
           fi
-          
+
           example_name=$(basename "$dir")
           has_pyproject=false
           has_main=false
-          
+
           if [ -f "$dir/pyproject.toml" ]; then
             has_pyproject=true
           fi
-          
+
           if [ -f "$dir/main.py" ]; then
             has_main=true
           fi
-          
+
           if [ "$has_pyproject" = true ] && [ "$has_main" = true ]; then
             valid_examples+=("$example_name")
             echo "✅ $example_name: has both pyproject.toml and main.py"
@@ -55,7 +63,7 @@ jobs:
             fi
           fi
         done
-        
+
         # Fail if any examples are invalid
         if [ ${#invalid_examples[@]} -gt 0 ]; then
           echo ""
@@ -65,7 +73,7 @@ jobs:
           echo "All example directories must contain both pyproject.toml and main.py"
           exit 1
         fi
-        
+
         # Convert valid examples to JSON array
         if [ ${#valid_examples[@]} -eq 0 ]; then
           echo "⚠️ No valid examples found"
@@ -73,7 +81,7 @@ jobs:
         else
           examples=$(printf '%s\n' "${valid_examples[@]}" | jq -R -s -c 'split("\n")[:-1]')
         fi
-        
+
         echo "Found valid examples: $examples"
         echo "examples=$examples" >> $GITHUB_OUTPUT
 
@@ -84,25 +92,25 @@ jobs:
       matrix:
         example: ${{ fromJson(needs.discover-examples.outputs.examples) }}
       fail-fast: false  # Continue running other examples even if one fails
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-        
+
     - name: Install uv
       uses: astral-sh/setup-uv@v4
       with:
         version: "latest"
-        
+
     - name: Install example dependencies
       working-directory: examples/${{ matrix.example }}
       run: uv sync
-        
+
     - name: Create .env file with API keys
       working-directory: examples/${{ matrix.example }}
       run: |
@@ -110,18 +118,18 @@ jobs:
         if [ -f ".env.example" ]; then
           echo "📝 Found .env.example, creating .env file with API keys..."
           cp .env.example .env
-          
+
           # Replace all API key placeholders regardless of which example this is
           if [ -n "${{ secrets.GOOGLE_API_KEY }}" ]; then
             sed -i 's/your_google_api_key_here/${{ secrets.GOOGLE_API_KEY }}/g' .env
             echo "✅ Set GOOGLE_API_KEY"
           fi
-          
+
           if [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
             sed -i 's/your_anthropic_api_key_here/${{ secrets.ANTHROPIC_API_KEY }}/g' .env
             echo "✅ Set ANTHROPIC_API_KEY"
           fi
-          
+
           if [ -n "${{ secrets.OPENAI_API_KEY }}" ]; then
             sed -i 's/your_openai_api_key_here/${{ secrets.OPENAI_API_KEY }}/g' .env
             echo "✅ Set OPENAI_API_KEY"
@@ -129,14 +137,14 @@ jobs:
         else
           echo "ℹ️ No .env.example found, skipping .env creation"
         fi
-        
+
     - name: Run example
       working-directory: examples/${{ matrix.example }}
       timeout-minutes: 10
       run: |
         echo "🚀 Running ${{ matrix.example }} example..."
         uv run python main.py
-        
+
     - name: Clean up .env file
       if: always()
       working-directory: examples/${{ matrix.example }}
@@ -160,15 +168,34 @@ jobs:
           echo "Examples job result: ${{ needs.run-examples.result }}"
           exit 1
         fi
-        
+
         # Check if we actually found and ran examples
         examples='${{ needs.discover-examples.outputs.examples }}'
         example_count=$(echo "$examples" | jq length)
-        
+
         if [ "$example_count" -eq 0 ]; then
           echo "⚠️ No examples were found to run"
           exit 1
         fi
-        
+
         echo "✅ All $example_count examples passed successfully!"
         echo "Examples run: $examples"
+
+  # This job ensures that required status checks always pass
+  # even when the workflow is skipped due to path filters
+  examples-status:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [examples-summary]
+    steps:
+    - name: Report status
+      run: |
+        if [ "${{ needs.examples-summary.result }}" = "skipped" ]; then
+          echo "✅ Examples workflow skipped - no changes to src/ or examples/"
+          echo "This is expected and the check should pass"
+        elif [ "${{ needs.examples-summary.result }}" = "success" ]; then
+          echo "✅ All examples passed successfully!"
+        else
+          echo "❌ Examples workflow failed"
+          exit 1
+        fi
