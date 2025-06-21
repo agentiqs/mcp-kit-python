@@ -21,9 +21,9 @@ uv run pre-commit install
 ## Development Workflow
 
 1. Choose the correct branch for your changes:
-   - For bug fixes to a released version: use the latest release branch (e.g. release/v1.1.x for 1.1.3)
-   - For new features: use the main branch (which will become the next minor/major version)
-   - If unsure, ask in an issue first
+   - For bug fixes to a released version: use the latest release branch (e.g. release/v1.1.x for 1.1.3).
+   - For new features: use the main branch (which will become the next minor/major version).
+   - If unsure, ask in an issue first.
 
 2. Create a new branch from your chosen base branch
 
