@@ -3,16 +3,8 @@ name: Run Examples
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'examples/**'
-      - '.github/workflows/run-examples.yml'
   pull_request:
     branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'examples/**'
-      - '.github/workflows/run-examples.yml'
   workflow_dispatch:
 
 jobs:
@@ -20,12 +12,24 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       examples: ${{ steps.find-examples.outputs.examples }}
+      should-run: ${{ steps.changes.outputs.code }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        filters: |
+          code:
+            - 'src/**'
+            - 'examples/**'
+            - 'pyproject.toml'
+            - '.github/workflows/run-examples.yml'
+
     - name: Find example directories
       id: find-examples
+      if: steps.changes.outputs.code == 'true'
       run: |
         # Find all directories in examples/ and validate they have required files
         valid_examples=()
@@ -85,9 +89,17 @@ jobs:
         echo "Found valid examples: $examples"
         echo "examples=$examples" >> $GITHUB_OUTPUT
 
+    - name: Set empty examples when skipped
+      id: set-empty
+      if: steps.changes.outputs.code == 'false'
+      run: |
+        echo "No code changes detected, skipping examples"
+        echo "examples=[]" >> $GITHUB_OUTPUT
+
   run-examples:
     runs-on: ubuntu-latest
     needs: discover-examples
+    if: needs.discover-examples.outputs.should-run == 'true' && needs.discover-examples.outputs.examples != '[]'
     strategy:
       matrix:
         example: ${{ fromJson(needs.discover-examples.outputs.examples) }}
@@ -162,8 +174,14 @@ jobs:
     steps:
     - name: Check all examples passed
       run: |
+        # Check if we should have run examples
+        if [ "${{ needs.discover-examples.outputs.should-run }}" = "false" ]; then
+          echo "✅ Examples skipped - no relevant code changes detected"
+          exit 0
+        fi
+
         # Check if the run-examples job succeeded
-        if [ "${{ needs.run-examples.result }}" != "success" ]; then
+        if [ "${{ needs.run-examples.result }}" != "success" ] && [ "${{ needs.run-examples.result }}" != "skipped" ]; then
           echo "❌ Some examples failed or were cancelled"
           echo "Examples job result: ${{ needs.run-examples.result }}"
           exit 1
@@ -180,22 +198,3 @@ jobs:
 
         echo "✅ All $example_count examples passed successfully!"
         echo "Examples run: $examples"
-
-  # This job ensures that required status checks always pass
-  # even when the workflow is skipped due to path filters
-  examples-status:
-    runs-on: ubuntu-latest
-    if: always()
-    needs: [examples-summary]
-    steps:
-    - name: Report status
-      run: |
-        if [ "${{ needs.examples-summary.result }}" = "skipped" ]; then
-          echo "✅ Examples workflow skipped - no changes to src/ or examples/"
-          echo "This is expected and the check should pass"
-        elif [ "${{ needs.examples-summary.result }}" = "success" ]; then
-          echo "✅ All examples passed successfully!"
-        else
-          echo "❌ Examples workflow failed"
-          exit 1
-        fi
