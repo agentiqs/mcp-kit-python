@@ -10,6 +10,7 @@ from omegaconf import OmegaConf
 from mcp_kit.generators import LlmAuthenticationError
 from mcp_kit.generators.interfaces import ToolResponseGenerator
 from mcp_kit.prompts.interfaces import PromptEngine
+from mcp_kit.prompts.interpolation import InterpolationPrompt
 from mcp_kit.targets.interfaces import Target
 from mcp_kit.targets.mocked import MockConfig, MockedTarget
 
@@ -523,7 +524,10 @@ class TestMockedTargetPromptEngine:
 
         # Create real InterpolationPromptEngine
         prompts_config = {
-            "greeting": "Hello {name}, welcome to {service}!",
+            "greeting": InterpolationPrompt(
+                text="Hello {name}, welcome to {service}!",
+                defaults={"service": "our platform"}
+            ),
         }
         prompt_engine = InterpolationPromptEngine(prompts_config)
 
@@ -535,11 +539,15 @@ class TestMockedTargetPromptEngine:
         prompt = Prompt(name="greeting", description="Greeting prompt", arguments=[])
         base_target.list_prompts.return_value = [prompt]
 
-        # Call get_prompt
+        # Test with explicit service override
         result = await mocked_target.get_prompt("greeting", {"name": "Alice", "service": "MCP"})
-
-        # Verify result
         assert result.description == "Interpolated response for prompt 'greeting' from test-target"
         assert len(result.messages) == 1
         assert result.messages[0].content.text == "Hello Alice, welcome to MCP!"
+
+        # Test with default service value (service not provided)
+        result_default = await mocked_target.get_prompt("greeting", {"name": "Bob"})
+        assert result_default.description == "Interpolated response for prompt 'greeting' from test-target"
+        assert len(result_default.messages) == 1
+        assert result_default.messages[0].content.text == "Hello Bob, welcome to our platform!"
         assert result.messages[0].role == "user"

@@ -4,7 +4,7 @@ import pytest
 from mcp.types import Prompt
 from omegaconf import OmegaConf
 
-from mcp_kit.prompts.interpolation import InterpolationPromptEngine
+from mcp_kit.prompts.interpolation import InterpolationPromptEngine, InterpolationPrompt
 
 
 class TestInterpolationEngineIntegration:
@@ -14,9 +14,9 @@ class TestInterpolationEngineIntegration:
     async def test_real_world_customer_service_example(self):
         """Test realistic customer service prompt interpolation."""
         prompts_config = {
-            "welcome": "Hello {customer_name}! Welcome to {company}. How can I help you today?",
-            "ticket_response": "Thank you for contacting {company}, {customer_name}. Your ticket #{ticket_id} has been {status}. We will {next_action} within {timeframe}.",
-            "escalation": "I understand your concern, {customer_name}. Let me escalate this to {department} for immediate attention.",
+            "welcome": InterpolationPrompt(text="Hello {customer_name}! Welcome to {company}. How can I help you today?"),
+            "ticket_response": InterpolationPrompt(text="Thank you for contacting {company}, {customer_name}. Your ticket #{ticket_id} has been {status}. We will {next_action} within {timeframe}."),
+            "escalation": InterpolationPrompt(text="I understand your concern, {customer_name}. Let me escalate this to {department} for immediate attention."),
         }
 
         engine = InterpolationPromptEngine(prompts_config)
@@ -58,7 +58,7 @@ class TestInterpolationEngineIntegration:
         assert len(engine.prompts) == 0
 
         # Single character prompt names should work
-        engine = InterpolationPromptEngine({"a": "Short prompt for {x}"})
+        engine = InterpolationPromptEngine({"a": InterpolationPrompt(text="Short prompt for {x}")})
         prompt = Prompt(name="a", description="Test")
         result = await engine.generate("test", prompt, {"x": "testing"})
         assert result.messages[0].content.text == "Short prompt for testing"

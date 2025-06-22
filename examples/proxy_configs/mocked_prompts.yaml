@@ -76,39 +76,64 @@ target:
           - name: agenda
             description: "Meeting agenda"
             required: true
+      - name: status_update
+        description: "Project status update"
+        arguments:
+          - name: project_name
+            description: "Name of the project"
+            required: true
+          - name: status
+            description: "Current project status"
+            required: true
+          - name: priority
+            description: "Project priority level"
+            required: false
+          - name: review_date
+            description: "Next review date"
+            required: false
 
   # Mock prompt responses with interpolation engine
   prompt_engine:
     type: interpolation
     prompts:
-      welcome_message: "Hello {customer_name}, welcome to {service_name}! Your account status is {status}."
+      welcome_message:
+        text: "Hello {customer_name}, welcome to {service_name}! Your account status is {status}."
 
-      ticket_response: |
-        Dear {customer_name},
+      ticket_response:
+        text: |
+          Dear {customer_name},
 
-        Thank you for contacting {company_name} support.
+          Thank you for contacting {company_name} support.
 
-        Ticket ID: {ticket_id}
-        Subject: {subject}
-        Priority: {priority}
+          Ticket ID: {ticket_id}
+          Subject: {subject}
+          Priority: {priority}
 
-        We will respond within {response_time}.
+          We will respond within {response_time}.
 
-        Best regards,
-        {agent_name}
+          Best regards,
+          {agent_name}
 
-      system_alert: "ALERT: {system} requires attention. Status: {status}. Action needed: {action}"
+      system_alert:
+        text: "ALERT: {system} requires attention. Status: {status}. Action needed: {action}"
 
-      meeting_invite: |
-        Meeting Invitation
+      meeting_invite:
+        text: |
+          Meeting Invitation
 
-        Subject: {meeting_subject}
-        Date: {date}
-        Time: {time}
-        Duration: {duration}
-        Location: {location}
+          Subject: {meeting_subject}
+          Date: {date}
+          Time: {time}
+          Duration: {duration}
+          Location: {location}
 
-        Agenda:
-        {agenda}
+          Agenda:
+          {agenda}
 
-        Please confirm your attendance.
+          Please confirm your attendance.
+
+      status_update:
+        text: "Project {project_name} status: {status}. Priority: {priority}. Next review: {review_date}."
+        defaults:
+          priority: "Medium"
+          review_date: "TBD"

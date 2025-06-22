@@ -177,8 +177,12 @@ class TestTargetFromConfig:
             "prompt_engine": {
                 "type": "interpolation",
                 "prompts": {
-                    "test_prompt": "Execute prompt {prompt_name} with {arguments}",
-                    "default": "Call {prompt_name}"
+                    "test_prompt": {
+                        "text": "Execute prompt {prompt_name} with {arguments}"
+                    },
+                    "default": {
+                        "text": "Call {prompt_name}"
+                    }
                 }
             },
         }
@@ -201,8 +205,12 @@ class TestTargetFromConfig:
             "prompt_engine": {
                 "type": "interpolation",
                 "prompts": {
-                    "greeting": "Hello {name}!",
-                    "default": "Default prompt"
+                    "greeting": {
+                        "text": "Hello {name}!"
+                    },
+                    "default": {
+                        "text": "Default prompt"
+                    }
                 }
             },
         }
@@ -237,12 +245,20 @@ class TestTargetFromConfig:
                 "base_target": {"type": "mcp", "name": "nested-mcp", "url": "http://example.com/mcp"},
                 "prompt_engine": {
                     "type": "interpolation",
-                    "prompts": {"inner": "Inner prompt for {name}"}
+                    "prompts": {
+                        "inner": {
+                            "text": "Inner prompt for {name}"
+                        }
+                    }
                 },
             },
             "prompt_engine": {
                 "type": "interpolation",
-                "prompts": {"outer": "Outer prompt for {name}"}
+                "prompts": {
+                    "outer": {
+                        "text": "Outer prompt for {name}"
+                    }
+                }
             },
         }
 

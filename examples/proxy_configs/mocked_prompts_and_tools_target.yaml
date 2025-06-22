@@ -121,6 +121,24 @@ target:
           - name: request_details
             description: "Request details"
             required: true
+      - name: notification_email
+        description: "Email notification template"
+        arguments:
+          - name: subject
+            description: "Email subject"
+            required: true
+          - name: recipient_name
+            description: "Recipient name"
+            required: true
+          - name: message_body
+            description: "Email message body"
+            required: true
+          - name: sender_name
+            description: "Sender name"
+            required: false
+          - name: sender_title
+            description: "Sender title"
+            required: false
 
   # Mock tool responses with random generator
   tool_response_generator:
@@ -130,30 +148,49 @@ target:
   prompt_engine:
     type: interpolation
     prompts:
-      user_greeting: "Welcome {username}! You have {notification_count} new notifications."
+      user_greeting:
+        text: "Welcome {username}! You have {notification_count} new notifications."
 
-      error_report: |
-        Error Report Generated
+      error_report:
+        text: |
+          Error Report Generated
 
-        Timestamp: {timestamp}
-        Error Code: {error_code}
-        Description: {description}
-        Affected Component: {component}
-        Severity: {severity}
+          Timestamp: {timestamp}
+          Error Code: {error_code}
+          Description: {description}
+          Affected Component: {component}
+          Severity: {severity}
 
-        Recommended Action: {action}
-        Contact: {support_contact}
+          Recommended Action: {action}
+          Contact: {support_contact}
 
-      data_summary: "Processing complete for {dataset_name}. Records processed: {record_count}, Errors: {error_count}, Duration: {duration}"
+      data_summary:
+        text: "Processing complete for {dataset_name}. Records processed: {record_count}, Errors: {error_count}, Duration: {duration}"
 
-      approval_request: |
-        Approval Required
+      approval_request:
+        text: |
+          Approval Required
 
-        Request Type: {request_type}
-        Submitted by: {submitter}
-        Date: {submission_date}
+          Request Type: {request_type}
+          Submitted by: {submitter}
+          Date: {submission_date}
 
-        Details:
-        {request_details}
+          Details:
+          {request_details}
 
-        Please review and approve/reject this request.
+          Please review and approve/reject this request.
+
+      notification_email:
+        text: |
+          {subject}
+
+          Hello {recipient_name},
+
+          {message_body}
+
+          Best regards,
+          {sender_name}
+          {sender_title}
+        defaults:
+          sender_name: "System Administrator"
+          sender_title: "IT Department"
