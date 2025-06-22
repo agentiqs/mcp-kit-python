@@ -8,7 +8,7 @@ from mcp.types import TextContent
 from omegaconf import OmegaConf
 
 from mcp_kit.generators import LlmAuthenticationError
-from mcp_kit.generators.interfaces import ResponseGenerator
+from mcp_kit.generators.interfaces import ToolResponseGenerator
 from mcp_kit.targets.interfaces import Target
 from mcp_kit.targets.mocked import MockConfig, MockedTarget
 
@@ -16,7 +16,7 @@ from mcp_kit.targets.mocked import MockConfig, MockedTarget
 @pytest.fixture
 def mock_generator():
     """Create a mock response generator."""
-    generator = MagicMock(spec=ResponseGenerator)
+    generator = MagicMock(spec=ToolResponseGenerator)
     generator.generate = AsyncMock()
     return generator
 
@@ -24,7 +24,7 @@ def mock_generator():
 @pytest.fixture
 def mock_config(mock_generator):
     """Create a mock configuration."""
-    return MockConfig(response_generator=mock_generator)
+    return MockConfig(tool_response_generator=mock_generator)
 
 
 @pytest.fixture
@@ -50,16 +50,16 @@ class TestMockConfig:
 
     def test_mock_config_creation(self, mock_generator):
         """Test MockConfig creation."""
-        config = MockConfig(response_generator=mock_generator)
-        assert config.response_generator == mock_generator
+        config = MockConfig(tool_response_generator=mock_generator)
+        assert config.tool_response_generator == mock_generator
 
     def test_mock_config_dataclass_behavior(self, mock_generator):
         """Test MockConfig behaves like a dataclass."""
-        config1 = MockConfig(response_generator=mock_generator)
-        config2 = MockConfig(response_generator=mock_generator)
+        config1 = MockConfig(tool_response_generator=mock_generator)
+        config2 = MockConfig(tool_response_generator=mock_generator)
 
         # Should be equal if same generator
-        assert config1.response_generator == config2.response_generator
+        assert config1.tool_response_generator == config2.tool_response_generator
 
 
 class TestMockedTarget:
@@ -85,7 +85,7 @@ class TestMockedTarget:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                "response_generator": {"type": "random"},
+                "tool_response_generator": {"type": "random"},
             }
         )
 
@@ -101,13 +101,13 @@ class TestMockedTarget:
             mock_base.name = "base-mcp"
             mock_create_target.return_value = mock_base
 
-            mock_gen = MagicMock(spec=ResponseGenerator)
+            mock_gen = MagicMock(spec=ToolResponseGenerator)
             mock_create_generator.return_value = mock_gen
 
             target = MockedTarget.from_config(config)
 
             assert target.target == mock_base
-            assert target.mock_config.response_generator == mock_gen
+            assert target.mock_config.tool_response_generator == mock_gen
 
     def test_from_config_with_llm_generator(self):
         """Test MockedTarget.from_config with LLM generator."""
@@ -119,7 +119,7 @@ class TestMockedTarget:
                     "name": "base-oas",
                     "spec_url": "http://example.com/openapi.json",
                 },
-                "response_generator": {"type": "llm", "model": "gpt-4"},
+                "tool_response_generator": {"type": "llm", "model": "gpt-4"},
             }
         )
 
@@ -135,13 +135,13 @@ class TestMockedTarget:
             mock_base.name = "base-oas"
             mock_create_target.return_value = mock_base
 
-            mock_gen = MagicMock(spec=ResponseGenerator)
+            mock_gen = MagicMock(spec=ToolResponseGenerator)
             mock_create_generator.return_value = mock_gen
 
             target = MockedTarget.from_config(config)
 
             assert target.target == mock_base
-            assert target.mock_config.response_generator == mock_gen
+            assert target.mock_config.tool_response_generator == mock_gen
 
     def test_from_config_with_default_generator(self):
         """Test MockedTarget.from_config with default generator (when not specified)."""
@@ -153,7 +153,7 @@ class TestMockedTarget:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                # No response_generator specified
+                # No tool_response_generator specified
             }
         )
 
@@ -169,7 +169,7 @@ class TestMockedTarget:
             mock_base.name = "base-mcp"
             mock_create_target.return_value = mock_base
 
-            mock_gen = MagicMock(spec=ResponseGenerator)
+            mock_gen = MagicMock(spec=ToolResponseGenerator)
             mock_create_generator.return_value = mock_gen
 
             target = MockedTarget.from_config(config)
@@ -323,13 +323,13 @@ class TestMockedTarget:
         base_target.list_tools = AsyncMock()
 
         # Create first level mock
-        gen1 = MagicMock(spec=ResponseGenerator)
-        config1 = MockConfig(response_generator=gen1)
+        gen1 = MagicMock(spec=ToolResponseGenerator)
+        config1 = MockConfig(tool_response_generator=gen1)
         mocked1 = MockedTarget(base_target, config1)
 
         # Create second level mock
-        gen2 = MagicMock(spec=ResponseGenerator)
-        config2 = MockConfig(response_generator=gen2)
+        gen2 = MagicMock(spec=ToolResponseGenerator)
+        config2 = MockConfig(tool_response_generator=gen2)
         mocked2 = MockedTarget(mocked1, config2)
 
         assert mocked2.name == "base_mocked_mocked"

@@ -70,7 +70,7 @@ class TestProxyMCPFromConfig:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                "response_generator": {"type": "random"},
+                "tool_response_generator": {"type": "random"},
             },
         }
 
@@ -85,7 +85,7 @@ class TestProxyMCPFromConfig:
             assert isinstance(proxy.target.target, McpTarget)
             assert proxy.target.target.name == "base-mcp"
             assert isinstance(
-                proxy.target.mock_config.response_generator,
+                proxy.target.mock_config.tool_response_generator,
                 RandomResponseGenerator,
             )
         finally:
@@ -101,7 +101,7 @@ class TestProxyMCPFromConfig:
                     "name": "base-oas",
                     "spec_url": "http://example.com/openapi.json",
                 },
-                "response_generator": {"type": "llm", "model": "gpt-4"},
+                "tool_response_generator": {"type": "llm", "model": "gpt-4"},
             },
         }
 
@@ -115,7 +115,7 @@ class TestProxyMCPFromConfig:
             assert isinstance(proxy.target, MockedTarget)
             assert isinstance(proxy.target.target, OasTarget)
             assert isinstance(
-                proxy.target.mock_config.response_generator,
+                proxy.target.mock_config.tool_response_generator,
                 LlmResponseGenerator,
             )
         finally:
@@ -223,7 +223,7 @@ class TestProxyMCPFromConfig:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                "response_generator": {"type": "invalid_generator"},
+                "tool_response_generator": {"type": "invalid_generator"},
             },
         }
 
@@ -282,7 +282,7 @@ class TestProxyMCPFromConfig:
 
             assert isinstance(proxy.target, MockedTarget)
             assert isinstance(
-                proxy.target.mock_config.response_generator,
+                proxy.target.mock_config.tool_response_generator,
                 RandomResponseGenerator,
             )
         finally:

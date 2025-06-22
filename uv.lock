@@ -1032,7 +1032,7 @@ provides-extras = ["langgraph"]
 [package.metadata.requires-dev]
 dev = [
     { name = "mcp-kit", extras = ["langgraph"] },
-    { name = "mypy", specifier = "==1.16.1" },
+    { name = "mypy", specifier = ">=1.16.1" },
     { name = "pre-commit", specifier = ">=4.2.0" },
     { name = "pytest", specifier = ">=8.4.0,<9" },
     { name = "pytest-asyncio", specifier = ">=1.0.0" },

@@ -5,5 +5,5 @@ target:
     type: mcp
     name: base-mcp-server
     url: http://localhost:8080/mcp
-  response_generator:
+  tool_response_generator:
     type: random

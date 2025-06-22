@@ -46,7 +46,7 @@ async def main() -> None:
         if hasattr(proxy.target, "target"):  # Mocked targets
             print(f"Base target type: {type(proxy.target.target).__name__}")
             if hasattr(proxy.target, "mock_config"):
-                print(f"Generator type: {type(proxy.target.mock_config.response_generator).__name__}")
+                print(f"Generator type: {type(proxy.target.mock_config.tool_response_generator).__name__}")
 
         if hasattr(proxy.target, "_targets_dict"):  # Multiplex targets
             print(f"Number of sub-targets: {len(proxy.target._targets_dict)}")

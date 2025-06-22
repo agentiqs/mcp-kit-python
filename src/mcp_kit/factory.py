@@ -1,6 +1,6 @@
 """Factory for creating instances from configuration using reflection.
 This module provides a central registry to avoid circular imports and supports
-both Target and ResponseGenerator creation.
+both Target and ToolResponseGenerator creation.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from mcp import Tool
 from mcp.types import Prompt, PromptArgument, ToolAnnotations
 from omegaconf import DictConfig, ListConfig, OmegaConf
 
-from mcp_kit.generators import ResponseGenerator
+from mcp_kit.generators import ToolResponseGenerator
 from mcp_kit.mixins import ConfigurableMixin
 from mcp_kit.targets import Target
 
@@ -86,15 +86,15 @@ def create_target_from_config(config: DictConfig) -> Target:
     )
 
 
-def create_response_generator_from_config(config: DictConfig) -> ResponseGenerator:
-    """Factory function to create any ResponseGenerator instance from configuration using reflection.
+def create_response_generator_from_config(config: DictConfig) -> ToolResponseGenerator:
+    """Factory function to create any ToolResponseGenerator instance from configuration using reflection.
 
-    :param config: ResponseGenerator configuration from OmegaConf
-    :return: ResponseGenerator instance
+    :param config: ToolResponseGenerator configuration from OmegaConf
+    :return: ToolResponseGenerator instance
     :raises ValueError: If generator type is unknown or cannot be instantiated
     """
     return cast(
-        ResponseGenerator,
+        ToolResponseGenerator,
         create_object_from_config(
             config,
             get_class_name=lambda generator_type: generator_type.capitalize() + "ResponseGenerator",

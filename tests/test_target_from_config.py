@@ -55,7 +55,7 @@ class TestTargetFromConfig:
         config_data = {
             "type": "mocked",
             "base_target": {"type": "mcp", "name": "base-mcp", "url": "http://example.com/mcp"},
-            "response_generator": {"type": "random"},
+            "tool_response_generator": {"type": "random"},
         }
 
         config = OmegaConf.create(config_data)
@@ -64,14 +64,14 @@ class TestTargetFromConfig:
         assert isinstance(target, MockedTarget)
         assert isinstance(target.target, McpTarget)
         assert target.target.name == "base-mcp"
-        assert isinstance(target.mock_config.response_generator, RandomResponseGenerator)
+        assert isinstance(target.mock_config.tool_response_generator, RandomResponseGenerator)
 
     def test_mocked_target_from_config_llm_generator(self):
         """Test MockedTarget.from_config with LLM generator."""
         config_data = {
             "type": "mocked",
             "base_target": {"type": "oas", "name": "base-oas", "spec_url": "http://example.com/openapi.json"},
-            "response_generator": {"type": "llm", "model": "gpt-4"},
+            "tool_response_generator": {"type": "llm", "model": "gpt-4"},
         }
 
         config = OmegaConf.create(config_data)
@@ -79,7 +79,7 @@ class TestTargetFromConfig:
 
         assert isinstance(target, MockedTarget)
         assert isinstance(target.target, OasTarget)
-        assert isinstance(target.mock_config.response_generator, LlmResponseGenerator)
+        assert isinstance(target.mock_config.tool_response_generator, LlmResponseGenerator)
 
     def test_mocked_target_from_config_default_generator(self):
         """Test MockedTarget.from_config with default generator."""
@@ -93,7 +93,7 @@ class TestTargetFromConfig:
         target = MockedTarget.from_config(config)
 
         assert isinstance(target, MockedTarget)
-        assert isinstance(target.mock_config.response_generator, RandomResponseGenerator)
+        assert isinstance(target.mock_config.tool_response_generator, RandomResponseGenerator)
 
     def test_multiplex_target_from_config(self):
         """Test MultiplexTarget.from_config factory method."""
@@ -139,7 +139,7 @@ class TestTargetFromConfig:
         config_data = {
             "type": "mocked",
             "base_target": {"type": "mcp", "name": "base-mcp", "url": "http://example.com/mcp"},
-            "response_generator": {"type": "invalid_generator"},
+            "tool_response_generator": {"type": "invalid_generator"},
         }
 
         config = OmegaConf.create(config_data)
@@ -154,9 +154,9 @@ class TestTargetFromConfig:
             "base_target": {
                 "type": "mocked",
                 "base_target": {"type": "mcp", "name": "nested-mcp", "url": "http://example.com/mcp"},
-                "response_generator": {"type": "random"},
+                "tool_response_generator": {"type": "random"},
             },
-            "response_generator": {"type": "llm", "model": "gpt-4"},
+            "tool_response_generator": {"type": "llm", "model": "gpt-4"},
         }
 
         config = OmegaConf.create(config_data)
@@ -165,5 +165,5 @@ class TestTargetFromConfig:
         assert isinstance(target, MockedTarget)
         assert isinstance(target.target, MockedTarget)  # Base is also mocked
         assert isinstance(target.target.target, McpTarget)  # Nested base is MCP
-        assert isinstance(target.mock_config.response_generator, LlmResponseGenerator)
-        assert isinstance(target.target.mock_config.response_generator, RandomResponseGenerator)
+        assert isinstance(target.mock_config.tool_response_generator, LlmResponseGenerator)
+        assert isinstance(target.target.mock_config.tool_response_generator, RandomResponseGenerator)

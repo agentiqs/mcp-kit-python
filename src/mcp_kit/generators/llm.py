@@ -12,7 +12,7 @@ from mcp.types import Content, TextContent
 from omegaconf import DictConfig
 from typing_extensions import Self
 
-from mcp_kit.generators.interfaces import ResponseGenerator
+from mcp_kit.generators.interfaces import ToolResponseGenerator
 
 # Suppress INFO logging from LiteLLM
 logging.getLogger("LiteLLM").setLevel(logging.WARNING)
@@ -29,7 +29,7 @@ class LlmAuthenticationError(Exception):
     pass
 
 
-class LlmResponseGenerator(ResponseGenerator):
+class LlmResponseGenerator(ToolResponseGenerator):
     """Generate mock responses using an LLM agent.
 
     This generator uses a Large Language Model to create realistic mock responses

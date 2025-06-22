@@ -12,7 +12,7 @@ from mcp_kit.factory import (
     create_response_generator_from_config,
     create_target_from_config,
 )
-from mcp_kit.generators import LlmAuthenticationError, ResponseGenerator
+from mcp_kit.generators import LlmAuthenticationError, ToolResponseGenerator
 from mcp_kit.targets import Target
 
 logger = logging.getLogger(__name__)
@@ -22,10 +22,10 @@ logger = logging.getLogger(__name__)
 class MockConfig:
     """Configuration for mocked target behavior.
 
-    :param response_generator: The generator to use for creating mock responses
+    :param tool_response_generator: The generator to use for creating mock responses
     """
 
-    response_generator: ResponseGenerator
+    tool_response_generator: ToolResponseGenerator
 
 
 class MockedTarget(Target):
@@ -65,12 +65,12 @@ class MockedTarget(Target):
 
         # Create response generator using the generator's own from_config method
         generator_config = config.get(
-            "response_generator",
+            "tool_response_generator",
             OmegaConf.create({"type": "random"}),
         )
         generator = create_response_generator_from_config(generator_config)
 
-        mock_config = MockConfig(response_generator=generator)
+        mock_config = MockConfig(tool_response_generator=generator)
         return cls(base_target, mock_config)
 
     async def initialize(self) -> None:
@@ -104,7 +104,7 @@ class MockedTarget(Target):
             tools = await self.list_tools()
             for tool in tools:
                 if tool.name == name:
-                    return await self.mock_config.response_generator.generate(
+                    return await self.mock_config.tool_response_generator.generate(
                         self.target.name,
                         tool,
                         arguments,

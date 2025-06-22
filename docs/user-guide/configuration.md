@@ -37,7 +37,7 @@ target:
       name: petstore-api
       spec_url: https://petstore3.swagger.io/api/v3/openapi.json
     - type: mocked
-      response_generator:
+      tool_response_generator:
         type: llm
         model: openai/gpt-4.1-nano
       base_target:
@@ -125,7 +125,7 @@ target:
     type: oas
     name: base-oas-server
     spec_url: https://petstore3.swagger.io/api/v3/openapi.json
-  response_generator:
+  tool_response_generator:
     type: llm
     model: openai/gpt-4.1-nano
 
@@ -151,13 +151,13 @@ target:
 Configure response generation:
 
 ```yaml
-response_generator:
+tool_response_generator:
   type: llm
   model: anthropic/claude-3-5-haiku-20241022
 ```
 
 ```yaml
-response_generator:
+tool_response_generator:
   type: random
 ```
 

@@ -56,7 +56,7 @@ target:
     type: oas
     name: base-oas-server
     spec_url: https://petstore3.swagger.io/api/v3/openapi.json
-  response_generator:
+  tool_response_generator:
     type: llm
     model: openai/gpt-4.1-nano
 ```
@@ -130,7 +130,7 @@ target:
     type: mcp
     name: test-server
     url: http://localhost:9000/mcp
-  response_generator:
+  tool_response_generator:
     type: llm
     model: openai/gpt-4.1-nano
 ```
@@ -268,7 +268,7 @@ target:
     type: oas
     name: accounting-api
     spec_url: https://api.company.com/accounting/openapi.json
-  response_generator:
+  tool_response_generator:
     type: llm
     model: openai/gpt-4.1-nano
 ```
@@ -303,7 +303,7 @@ target:
         type: mcp
         name: experimental-service
         url: https://beta.company.com/mcp
-      response_generator:
+      tool_response_generator:
         type: random
 ```
 
@@ -322,10 +322,10 @@ WEATHER_API_KEY=your-weather-key
 ### Custom Response Generators
 
 ```python
-from mcp_kit.generators import ResponseGenerator
+from mcp_kit.generators import ToolResponseGenerator
 from mcp_kit import ProxyMCP
 
-class CustomGenerator(ResponseGenerator):
+class CustomGenerator(ToolResponseGenerator):
     async def generate(self, target_name: str, tool: Tool, arguments: dict[str, Any] | None = None) -> list[Content]:
         # Your custom logic here
         return [TextContent(type="text", text=f"Custom response for {tool.name} on {target_name}")]
@@ -334,7 +334,7 @@ class CustomGenerator(ResponseGenerator):
 proxy = ProxyMCP(
     target=MockedTarget(
         base_target=McpTarget("test", "http://localhost:8080"),
-        mock_config=MockConfig(response_generator=CustomGenerator())
+        mock_config=MockConfig(tool_response_generator=CustomGenerator())
     )
 )
 ```
