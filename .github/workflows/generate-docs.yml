@@ -22,7 +22,7 @@ jobs:
         path: mcp-kit-python
         # When triggered by release workflow, checkout the specific tagged commit
         ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
-        fetch-depth: 0  # Fetch complete history including all tags
+        fetch-depth: 0
 
     - name: Checkout docs repository
       uses: actions/checkout@v4
@@ -51,11 +51,9 @@ jobs:
       working-directory: mcp-kit-python/docs_syncer
       run: |
         echo "🚀 Generating comprehensive documentation (API reference + user guide)..."
-        uv run python generator.py
-
-    - name: Check for tag and create versioned docs
-      id: versioning
-      working-directory: website
+        uv run python generator.py    - name: Check for tag
+      id: check_tag
+      working-directory: mcp-kit-python
       run: |
         # Get the commit SHA we're working with
         if [ "${{ github.event_name }}" = "workflow_run" ]; then
@@ -67,7 +65,6 @@ jobs:
         echo "🏷️ Checking if commit ${COMMIT_SHA} is tagged..."
 
         # Check if this commit has a tag in the mcp-kit-python repo
-        cd ../mcp-kit-python
         TAG=$(git tag --points-at ${COMMIT_SHA} | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
 
         if [ -n "$TAG" ]; then
@@ -79,24 +76,28 @@ jobs:
           echo "has_tag=true" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-          cd ../website
-          echo "📦 Installing npm dependencies..."
-          npm install
-
-          echo "📚 Creating versioned documentation for version $VERSION..."
-          npm run docusaurus docs:version:mcp-kit-python $VERSION
-
-          echo "🔀 Creating Netlify redirects for version $VERSION..."
-          mkdir -p static
-          echo "/mcp-kit-python/$VERSION/docs/*      /mcp-kit-python/docs/:splat      301" > static/_redirects
-          echo "/mcp-kit-python/$VERSION/category/*  /mcp-kit-python/category/:splat  301" >> static/_redirects
-
-          echo "✅ Versioned documentation and redirects created for $VERSION"
         else
           echo "has_tag=false" >> $GITHUB_OUTPUT
           echo "ℹ️ No version tag found for this commit, skipping versioning"
         fi
+
+    - name: Create versioned docs
+      if: steps.check_tag.outputs.has_tag == 'true'
+      working-directory: website
+      run: |
+        VERSION="${{ steps.check_tag.outputs.version }}"
+        echo "📦 Installing npm dependencies..."
+        npm install
+
+        echo "📚 Creating versioned documentation for version $VERSION..."
+        npm run docusaurus docs:version:mcp-kit-python $VERSION
+
+        echo "🔀 Creating Netlify redirects for version $VERSION..."
+        mkdir -p static
+        echo "/mcp-kit-python/$VERSION/docs/*      /mcp-kit-python/docs/:splat      301" > static/_redirects
+        echo "/mcp-kit-python/$VERSION/category/*  /mcp-kit-python/category/:splat  301" >> static/_redirects
+
+        echo "✅ Versioned documentation and redirects created for $VERSION"
 
     - name: Commit and push documentation changes
       working-directory: website
@@ -128,13 +129,11 @@ jobs:
 
         git commit -m "$COMMIT_MSG"
         git push
-        echo "✅ Documentation successfully updated!"
-
-    - name: Create tag in docs repo for versioned release
-      if: steps.versioning.outputs.has_tag == 'true'
+        echo "✅ Documentation successfully updated!"    - name: Create tag in docs repo for versioned release
+      if: steps.check_tag.outputs.has_tag == 'true'
       working-directory: website
       run: |
-        VERSION="${{ steps.versioning.outputs.version }}"
+        VERSION="${{ steps.check_tag.outputs.version }}"
         DOCS_TAG="mcp-kit-python-v${VERSION}"
 
         echo "🏷️ Creating tag ${DOCS_TAG} in docs repository..."
