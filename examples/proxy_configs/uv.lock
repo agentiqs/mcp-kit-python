@@ -251,14 +251,14 @@ wheels = [
 
 [[package]]
 name = "examples-proxy-configs"
-version = "0.1.2"
+version = "0.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "mcp-kit" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "mcp-kit", specifier = "==0.1.2" }]
+requires-dist = [{ name = "mcp-kit" }]
 
 [[package]]
 name = "exceptiongroup"
@@ -745,7 +745,7 @@ wheels = [
 
 [[package]]
 name = "mcp-kit"
-version = "0.1.2"
+version = "0.1.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
@@ -757,9 +757,9 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/92/8a/c423da47b3c96c2b31f6ad55d9c4c1f21fac447b424d985923716099ead4/mcp_kit-0.1.2.tar.gz", hash = "sha256:b1d223c28a185d2ece112e5cb99abe356897455ff3e0e3627fd3ee7325b14245", size = 1065997, upload-time = "2025-06-17T20:29:14.471Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1c/6f/a3725f584bf15e392a01cf69bf26b8abb54bc3ad3961ee9b7a967bb20c0f/mcp_kit-0.1.5.tar.gz", hash = "sha256:a4135acc41e6d4cecdf408fd5f6190c6b6999e8a7c78d03bc564e306952c6d8a", size = 1188320, upload-time = "2025-06-21T19:03:39.169Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bf/58/8f02f99faab51bda97f93ec6469c8e1bb2b3fbcabf10b8b4896b4c1882c5/mcp_kit-0.1.2-py3-none-any.whl", hash = "sha256:d704e4dbdfe02d999f4f508e88f280f1b8596859db2e72b8c1a494f51861e10d", size = 24927, upload-time = "2025-06-17T20:29:12.564Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/13/02b1cee98dee311fe568292f953483cff8605241206bbffbdce7a1f9883f/mcp_kit-0.1.5-py3-none-any.whl", hash = "sha256:b60b5627dc0962ca38efc7a291e6e202a874f4647bdac1fdcd696e3e96e99283", size = 25105, upload-time = "2025-06-21T19:03:37.821Z" },
 ]
 
 [[package]]

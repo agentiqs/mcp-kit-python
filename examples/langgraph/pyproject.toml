@@ -1,5 +1,6 @@
 [project]
 name = "examples-langgraph"
+version = "0.0.1"
 description = "MCP Kit LangGraph Example"
 readme = "README.md"
 authors = [

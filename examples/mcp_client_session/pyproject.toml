@@ -1,5 +1,6 @@
 [project]
 name = "examples-mcp-client-session"
+version = "0.0.1"
 description = "MCP Kit Official MCP Client Session Example"
 readme = "README.md"
 authors = [

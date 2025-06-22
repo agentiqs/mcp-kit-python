@@ -1,5 +1,6 @@
 [project]
 name = "examples-proxy-configs"
+version = "0.0.1"
 description = "MCP Kit Proxy Configs Example"
 readme = "README.md"
 authors = [

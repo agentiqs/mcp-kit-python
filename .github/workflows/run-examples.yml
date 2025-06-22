@@ -155,7 +155,7 @@ jobs:
       timeout-minutes: 10
       run: |
         echo "🚀 Running ${{ matrix.example }} example..."
-        uv pip install -e ../..
+        uv add --editable ../../
         uv run python main.py
 
     - name: Clean up .env file
