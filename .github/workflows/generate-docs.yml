@@ -1,13 +1,6 @@
 name: Generate Documentation
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'docs/**'
-      - 'docs_syncer/**'
-      - '.github/workflows/generate-docs.yml'
   workflow_dispatch:
   workflow_run:
     workflows: ["Release"]
