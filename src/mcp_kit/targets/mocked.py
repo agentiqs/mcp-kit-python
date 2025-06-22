@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from mcp.types import Content, Tool
+from mcp.types import Content, GetPromptResult, Prompt, Tool
 from omegaconf import DictConfig, OmegaConf
 from typing_extensions import Self
 
@@ -121,3 +121,26 @@ class MockedTarget(Target):
     async def close(self) -> None:
         """Close the base target."""
         await self.target.close()
+
+    async def list_prompts(self) -> list[Prompt]:
+        """List prompts from the base target.
+
+        :return: List of available prompts from the base target
+        """
+        return await self.target.list_prompts()
+
+    async def get_prompt(
+        self,
+        name: str,
+        arguments: dict[str, str] | None = None,
+    ) -> GetPromptResult:
+        """Generate a mock response for the specified prompt.
+
+        For now, this delegates to the base target since prompt responses
+        are more complex to mock than simple tool responses.
+
+        :param name: Name of the prompt to get
+        :param arguments: Arguments to pass to the prompt
+        :return: Prompt result from the base target
+        """
+        return await self.target.get_prompt(name, arguments)

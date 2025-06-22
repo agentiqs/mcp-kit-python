@@ -4,11 +4,11 @@ from contextlib import AsyncExitStack
 from typing import Any
 
 from mcp import ClientSession, Tool
-from mcp.types import Content
+from mcp.types import Content, GetPromptResult, Prompt
 from omegaconf import DictConfig
 from typing_extensions import Self
 
-from mcp_kit.factory import create_tools_from_config
+from mcp_kit.factory import create_prompts_from_config, create_tools_from_config
 from mcp_kit.patch_mcp import http_streamable_session
 from mcp_kit.targets.interfaces import Target
 
@@ -26,6 +26,7 @@ class McpTarget(Target):
         url: str | None = None,
         headers: dict[str, str] | None = None,
         tools: list[Tool] | None = None,
+        prompts: list[Prompt] | None = None,
     ) -> None:
         """Initialize the MCP target.
 
@@ -33,11 +34,13 @@ class McpTarget(Target):
         :param url: Optional URL of the remote MCP server
         :param headers: Optional HTTP headers for server requests
         :param tools: Optional predefined tools to use instead of remote server tools
+        :param tools: Optional predefined prompts to use instead of remote server prompts
         """
         self._name = name
         self.url = url
         self.headers = headers
         self.tools = tools
+        self.prompts = prompts
         self.target_mcp: ClientSession | None = None
         self.target_mcp_exit_stack: AsyncExitStack | None = None
 
@@ -61,6 +64,7 @@ class McpTarget(Target):
             url=config.get("url"),
             headers=config.get("headers"),
             tools=create_tools_from_config(config),
+            prompts=create_prompts_from_config(config),
         )
 
     async def initialize(self) -> None:
@@ -104,6 +108,36 @@ class McpTarget(Target):
         if self.target_mcp is None:
             raise ValueError("MCP client is not initialized. Call initialize() first.")
         return (await self.target_mcp.call_tool(name=name, arguments=arguments)).content
+
+    async def list_prompts(self) -> list[Prompt]:
+        """List all available prompts.
+
+        Returns predefined prompts if available, otherwise queries the remote MCP server.
+
+        :return: List of available prompts
+        :raises ValueError: If no prompts are available and MCP is not initialized
+        """
+        if self.prompts is not None:
+            return self.prompts
+        if self.target_mcp is not None:
+            return (await self.target_mcp.list_prompts()).prompts
+        raise ValueError("No prompts available. Initialize the MCP or provide prompts.")
+
+    async def get_prompt(
+        self,
+        name: str,
+        arguments: dict[str, str] | None = None,
+    ) -> GetPromptResult:
+        """Get a specific prompt by name with optional arguments.
+
+        :param name: Name of the prompt to get
+        :param arguments: Arguments to pass to the prompt
+        :return: Prompt result with messages
+        :raises ValueError: If MCP client is not initialized
+        """
+        if self.target_mcp is None:
+            raise ValueError("MCP client is not initialized. Call initialize() first.")
+        return await self.target_mcp.get_prompt(name=name, arguments=arguments)
 
     async def close(self) -> None:
         """Close the connection to the MCP server.

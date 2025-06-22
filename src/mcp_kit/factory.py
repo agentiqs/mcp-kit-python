@@ -10,7 +10,7 @@ from collections.abc import Callable
 from typing import Any, cast
 
 from mcp import Tool
-from mcp.types import ToolAnnotations
+from mcp.types import Prompt, PromptArgument, ToolAnnotations
 from omegaconf import DictConfig, ListConfig, OmegaConf
 
 from mcp_kit.generators import ResponseGenerator
@@ -139,3 +139,38 @@ def create_tools_from_config(config: DictConfig) -> list[Tool] | None:
         tools.append(tool)
 
     return tools
+
+
+def create_prompts_from_config(config: DictConfig) -> list[Prompt] | None:
+    """Factory function to create any Prompt instance from configuration using reflection.
+
+    :param config: Prompt configuration from OmegaConf
+    :return: List of Prompt instances or None if no prompts are defined
+    """
+    prompts_config: ListConfig | None = config.get("prompts")
+    if prompts_config is None:
+        return None
+
+    prompts = []
+    for prompt_config in prompts_config:
+        # Handle prompt arguments if present
+        arguments = None
+        arguments_config: ListConfig | None = prompt_config.get("arguments")
+        if arguments_config is not None:
+            arguments = []
+            for arg_config in arguments_config:
+                arg = PromptArgument(
+                    name=arg_config.name,
+                    description=arg_config.get("description"),
+                    required=arg_config.get("required"),
+                )
+                arguments.append(arg)
+
+        prompt = Prompt(
+            name=prompt_config.name,
+            description=prompt_config.get("description"),
+            arguments=arguments,
+        )
+        prompts.append(prompt)
+
+    return prompts

@@ -8,6 +8,7 @@ from mcp_kit.factory import (
     create_response_generator_from_config,
     create_target_from_config,
     create_tools_from_config,
+    create_prompts_from_config,
 )
 from mcp_kit.generators import LlmResponseGenerator, RandomResponseGenerator
 from mcp_kit.targets import McpTarget, MockedTarget, MultiplexTarget, OasTarget

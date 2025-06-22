@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from mcp import McpError, Tool
-from mcp.types import TextContent
+from mcp.types import TextContent, Prompt, PromptArgument, GetPromptResult
 from omegaconf import OmegaConf
 
 from mcp_kit.targets.interfaces import Target
@@ -20,6 +20,8 @@ def mock_target1():
     target.close = AsyncMock()
     target.list_tools = AsyncMock()
     target.call_tool = AsyncMock()
+    target.list_prompts = AsyncMock()
+    target.get_prompt = AsyncMock()
     return target
 
 
@@ -32,6 +34,8 @@ def mock_target2():
     target.close = AsyncMock()
     target.list_tools = AsyncMock()
     target.call_tool = AsyncMock()
+    target.list_prompts = AsyncMock()
+    target.get_prompt = AsyncMock()
     return target
 
 
@@ -316,3 +320,175 @@ class TestMultiplexTarget:
 
         # First target should still have been closed
         mock_target1.close.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_list_prompts(self, multiplex_target, mock_target1, mock_target2):
+        """Test list_prompts returns namespaced prompts from all targets."""
+        # Setup prompts for each target
+        prompt1 = Prompt(name="prompt1", description="First prompt")
+        prompt2 = Prompt(
+            name="prompt2",
+            description="Second prompt",
+            arguments=[
+                PromptArgument(name="arg1", description="Argument 1", required=True)
+            ]
+        )
+        prompt3 = Prompt(name="prompt3", description="Third prompt")
+
+        mock_target1.list_prompts.return_value = [prompt1, prompt2]
+        mock_target2.list_prompts.return_value = [prompt3]
+
+        prompts = await multiplex_target.list_prompts()
+
+        # Should have 3 prompts total
+        assert len(prompts) == 3
+
+        # Check namespacing
+        prompt_names = [p.name for p in prompts]
+        assert "target1.prompt1" in prompt_names
+        assert "target1.prompt2" in prompt_names
+        assert "target2.prompt3" in prompt_names
+
+        # Check that original descriptions and arguments are preserved
+        for prompt in prompts:
+            if prompt.name == "target1.prompt1":
+                assert prompt.description == "First prompt"
+                assert prompt.arguments is None
+            elif prompt.name == "target1.prompt2":
+                assert prompt.description == "Second prompt"
+                assert prompt.arguments is not None
+                assert len(prompt.arguments) == 1
+                assert prompt.arguments[0].name == "arg1"
+            elif prompt.name == "target2.prompt3":
+                assert prompt.description == "Third prompt"
+
+        # Verify calls
+        mock_target1.list_prompts.assert_called_once()
+        mock_target2.list_prompts.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_list_prompts_empty_targets(self, multiplex_target, mock_target1, mock_target2):
+        """Test list_prompts with empty targets."""
+        mock_target1.list_prompts.return_value = []
+        mock_target2.list_prompts.return_value = []
+
+        prompts = await multiplex_target.list_prompts()
+        assert prompts == []
+
+    @pytest.mark.asyncio
+    async def test_list_prompts_some_empty(self, multiplex_target, mock_target1, mock_target2):
+        """Test list_prompts when some targets have no prompts."""
+        prompt1 = Prompt(name="only_prompt", description="Only prompt")
+
+        mock_target1.list_prompts.return_value = [prompt1]
+        mock_target2.list_prompts.return_value = []
+
+        prompts = await multiplex_target.list_prompts()
+        assert len(prompts) == 1
+        assert prompts[0].name == "target1.only_prompt"
+
+    @pytest.mark.asyncio
+    async def test_get_prompt_success(self, multiplex_target, mock_target1, mock_target2):
+        """Test get_prompt routes to correct target."""
+        mock_result = GetPromptResult(
+            description="Test prompt result",
+            messages=[]
+        )
+        mock_target1.get_prompt.return_value = mock_result
+
+        result = await multiplex_target.get_prompt(
+            "target1.test_prompt",
+            {"arg1": "value1"}
+        )
+
+        assert result == mock_result
+        mock_target1.get_prompt.assert_called_once_with(
+            "target1.test_prompt",
+            {"arg1": "value1"}
+        )
+        mock_target2.get_prompt.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_get_prompt_no_prefix(self, multiplex_target):
+        """Test get_prompt with prompt name without target prefix."""
+        with pytest.raises(
+            McpError,
+            match="Invalid prompt name 'no_prefix_prompt', expected format 'target_name.prompt_name'",
+        ):
+            await multiplex_target.get_prompt("no_prefix_prompt")
+
+    @pytest.mark.asyncio
+    async def test_get_prompt_unknown_target(self, multiplex_target):
+        """Test get_prompt with unknown target name."""
+        with pytest.raises(McpError, match="Prompt 'unknown_target.test_prompt' not found"):
+            await multiplex_target.get_prompt("unknown_target.test_prompt")
+
+    @pytest.mark.asyncio
+    async def test_get_prompt_propagates_exceptions(self, multiplex_target, mock_target1):
+        """Test get_prompt propagates exceptions from targets."""
+        mock_target1.get_prompt.side_effect = RuntimeError("Prompt error")
+
+        with pytest.raises(RuntimeError, match="Prompt error"):
+            await multiplex_target.get_prompt("target1.test_prompt")
+
+    def test_get_namespaced_name_generic(self, multiplex_target, mock_target1):
+        """Test the generic _get_namespaced_name method works for both tools and prompts."""
+        # Test with tool name
+        tool_name = multiplex_target._get_namespaced_name(mock_target1, "my_tool")
+        assert tool_name == "target1.my_tool"
+
+        # Test with prompt name
+        prompt_name = multiplex_target._get_namespaced_name(mock_target1, "my_prompt")
+        assert prompt_name == "target1.my_prompt"
+
+    def test_get_namespace_from_name_generic(self, multiplex_target):
+        """Test the generic _get_namespace_from_name method works for both tools and prompts."""
+        # Test with tool
+        target_name = multiplex_target._get_namespace_from_name("target1.my_tool", "tool")
+        assert target_name == "target1"
+
+        # Test with prompt
+        target_name = multiplex_target._get_namespace_from_name("target1.my_prompt", "prompt")
+        assert target_name == "target1"
+
+    def test_get_namespace_from_name_invalid_format(self, multiplex_target):
+        """Test _get_namespace_from_name with invalid format."""
+        with pytest.raises(
+            McpError,
+            match="Invalid tool name 'no_dots', expected format 'target_name.tool_name'",
+        ):
+            multiplex_target._get_namespace_from_name("no_dots", "tool")
+
+        with pytest.raises(
+            McpError,
+            match="Invalid prompt name 'no_dots', expected format 'target_name.prompt_name'",
+        ):
+            multiplex_target._get_namespace_from_name("no_dots", "prompt")
+
+    @pytest.mark.asyncio
+    async def test_prompts_and_tools_together(self, multiplex_target, mock_target1, mock_target2):
+        """Test that prompts and tools work together correctly."""
+        # Setup tools
+        tool1 = Tool(name="tool1", description="First tool", inputSchema={})
+        tool2 = Tool(name="tool2", description="Second tool", inputSchema={})
+        mock_target1.list_tools.return_value = [tool1]
+        mock_target2.list_tools.return_value = [tool2]
+
+        # Setup prompts
+        prompt1 = Prompt(name="prompt1", description="First prompt")
+        prompt2 = Prompt(name="prompt2", description="Second prompt")
+        mock_target1.list_prompts.return_value = [prompt1]
+        mock_target2.list_prompts.return_value = [prompt2]
+
+        # Test both work independently
+        tools = await multiplex_target.list_tools()
+        prompts = await multiplex_target.list_prompts()
+
+        assert len(tools) == 2
+        assert len(prompts) == 2
+
+        # Check namespacing is consistent
+        assert "target1.tool1" in [t.name for t in tools]
+        assert "target1.prompt1" in [p.name for p in prompts]
+        assert "target2.tool2" in [t.name for t in tools]
+        assert "target2.prompt2" in [p.name for p in prompts]
