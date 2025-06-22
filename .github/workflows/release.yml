@@ -96,11 +96,23 @@ jobs:
       - name: Build package
         run: uv build
 
+      - name: Generate manual release notes section
+        id: manual_release_notes
+        run: |
+          # Create release notes for GitHub
+          cat > MANUAL_RELEASE_NOTES.md << EOF
+          **Docs permalink**: https://docs.agentiqs.ai/mcp-kit-python/${{ steps.version.outputs.version_without_v }}/docs
+          EOF
+
+          echo "manual_release_notes_file=MANUAL_RELEASE_NOTES.md" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: Release ${{ steps.version.outputs.version }}
+          # this will be prepended to the automatically generated release notes
+          body_path: ${{ steps.manual_release_notes.outputs.manual_release_notes_file }}
           generate_release_notes: true
           files: |
             dist/*.whl
