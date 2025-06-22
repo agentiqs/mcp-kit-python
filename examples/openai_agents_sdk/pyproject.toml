@@ -1,6 +1,5 @@
 [project]
 name = "examples-openai-agents-sdk"
-version = "0.1.2"
 description = "MCP Kit OpenAI Agents Example"
 readme = "README.md"
 authors = [
@@ -8,7 +7,7 @@ authors = [
 ]
 requires-python = ">=3.10,<3.13"
 dependencies = [
-    "mcp-kit==0.1.2",
+    "mcp-kit",
     "openai-agents==0.0.17",
 ]
 

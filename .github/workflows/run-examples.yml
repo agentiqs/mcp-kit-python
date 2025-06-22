@@ -119,6 +119,9 @@ jobs:
       with:
         version: "latest"
 
+    - name: Install mcp-kit in editable mode
+      run: uv pip install -e .
+
     - name: Install example dependencies
       working-directory: examples/${{ matrix.example }}
       run: uv sync
