@@ -2,7 +2,7 @@
 
 import pytest
 from mcp import Tool
-from mcp.types import Content, TextContent
+from mcp.types import Content, TextContent, Prompt, GetPromptResult, PromptMessage
 from omegaconf import DictConfig, OmegaConf
 
 from mcp_kit.targets.interfaces import Target
@@ -49,6 +49,17 @@ class TestTargetInterface:
             ) -> list[Content]:
                 return [TextContent(type="text", text="test")]
 
+            async def list_prompts(self) -> list:
+                from mcp.types import Prompt
+                return []
+
+            async def get_prompt(self, name: str, arguments: dict | None = None):
+                from mcp.types import GetPromptResult, PromptMessage, TextContent
+                return GetPromptResult(
+                    description="Test prompt",
+                    messages=[PromptMessage(role="user", content=TextContent(type="text", text="test"))]
+                )
+
             async def close(self) -> None:
                 pass
 
@@ -87,6 +98,17 @@ class TestTargetInterface:
                 return [
                     TextContent(type="text", text=f"Called {name} with {arguments}")
                 ]
+
+            async def list_prompts(self) -> list:
+                from mcp.types import Prompt
+                return []
+
+            async def get_prompt(self, name: str, arguments: dict | None = None):
+                from mcp.types import GetPromptResult, PromptMessage, TextContent
+                return GetPromptResult(
+                    description="Test prompt",
+                    messages=[PromptMessage(role="user", content=TextContent(type="text", text="test"))]
+                )
 
             async def close(self) -> None:
                 self.closed = True
@@ -147,6 +169,17 @@ class TestTargetInterface:
             ) -> list[Content]:
                 return []
 
+            async def list_prompts(self) -> list:
+                from mcp.types import Prompt
+                return []
+
+            async def get_prompt(self, name: str, arguments: dict | None = None):
+                from mcp.types import GetPromptResult, PromptMessage, TextContent
+                return GetPromptResult(
+                    description="Test prompt",
+                    messages=[PromptMessage(role="user", content=TextContent(type="text", text="test"))]
+                )
+
             async def close(self) -> None:
                 pass
 
@@ -193,6 +226,17 @@ class TestTargetInterface:
                 self, name: str, arguments: dict | None = None
             ) -> list[Content]:
                 return []
+
+            async def list_prompts(self) -> list:
+                from mcp.types import Prompt
+                return []
+
+            async def get_prompt(self, name: str, arguments: dict | None = None):
+                from mcp.types import GetPromptResult, PromptMessage, TextContent
+                return GetPromptResult(
+                    description="Test prompt",
+                    messages=[PromptMessage(role="user", content=TextContent(type="text", text="test"))]
+                )
 
             async def close(self) -> None:
                 pass
@@ -241,6 +285,21 @@ class TestTargetInterface:
                 if self.state != "initialized":
                     raise RuntimeError("Not initialized")
                 return [TextContent(type="text", text="Lifecycle response")]
+
+            async def list_prompts(self) -> list:
+                from mcp.types import Prompt
+                if self.state != "initialized":
+                    raise RuntimeError("Not initialized")
+                return []
+
+            async def get_prompt(self, name: str, arguments: dict | None = None):
+                from mcp.types import GetPromptResult, PromptMessage, TextContent
+                if self.state != "initialized":
+                    raise RuntimeError("Not initialized")
+                return GetPromptResult(
+                    description="Test prompt",
+                    messages=[PromptMessage(role="user", content=TextContent(type="text", text="test"))]
+                )
 
             async def close(self) -> None:
                 self.state = "closed"
@@ -327,6 +386,19 @@ class TestTargetInterface:
                 if name == "error_tool":
                     raise ValueError("Invalid tool parameter")
                 return [TextContent(type="text", text="Success")]
+
+            async def list_prompts(self) -> list:
+                from mcp.types import Prompt
+                raise RuntimeError("Service unavailable")
+
+            async def get_prompt(self, name: str, arguments: dict | None = None):
+                from mcp.types import GetPromptResult, PromptMessage, TextContent
+                if name == "error_prompt":
+                    raise ValueError("Invalid prompt parameter")
+                return GetPromptResult(
+                    description="Test prompt",
+                    messages=[PromptMessage(role="user", content=TextContent(type="text", text="test"))]
+                )
 
             async def close(self) -> None:
                 # Close should typically not raise errors
