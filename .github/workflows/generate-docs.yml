@@ -95,10 +95,8 @@ jobs:
 
           echo "🔀 Creating Netlify redirects for version $VERSION..."
           mkdir -p static
-          cat > static/_redirects << EOF
-/mcp-kit-python/$VERSION/docs/*      /mcp-kit-python/docs/:splat      301
-/mcp-kit-python/$VERSION/category/*  /mcp-kit-python/category/:splat  301
-EOF
+          echo "/mcp-kit-python/$VERSION/docs/*      /mcp-kit-python/docs/:splat      301" > static/_redirects
+          echo "/mcp-kit-python/$VERSION/category/*  /mcp-kit-python/category/:splat  301" >> static/_redirects
 
           echo "✅ Versioned documentation and redirects created for $VERSION"
         else
