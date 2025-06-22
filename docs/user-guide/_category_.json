@@ -1,8 +1,8 @@
 {
   "label": "User Guide",
-  "position": 1,
+  "position": 2,
   "link": {
     "type": "generated-index",
-    "description": "User guides for mcp-kit Python SDK."
+    "description": "User guides for mcp-kit-python."
   }
 }
