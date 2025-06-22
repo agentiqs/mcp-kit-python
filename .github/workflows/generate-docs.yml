@@ -51,7 +51,9 @@ jobs:
       working-directory: mcp-kit-python/docs_syncer
       run: |
         echo "🚀 Generating comprehensive documentation (API reference + user guide)..."
-        uv run python generator.py    - name: Check for tag
+        uv run python generator.py
+
+    - name: Check for tag
       id: check_tag
       working-directory: mcp-kit-python
       run: |
