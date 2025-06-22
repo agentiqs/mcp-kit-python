@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+# This file was auto-generated and should not be edited manually
 ---
 
 # Installation
@@ -67,4 +68,4 @@ Common environment variables:
 ## Next Steps
 
 - [Configuration Guide](./configuration.md) - Set up your first proxy
-- [Examples](/docs/python-sdk/examples) - Real-world usage examples
+- [Examples](../examples) - Real-world usage examples

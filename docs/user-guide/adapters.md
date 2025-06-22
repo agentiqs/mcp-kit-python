@@ -1,5 +1,6 @@
 ---
 sidebar_position: 4
+# This file was auto-generated and should not be edited manually
 ---
 
 # Framework Adapters
@@ -8,10 +9,10 @@ MCP Kit provides adapters for popular Python frameworks, making it easy to integ
 
 ## Examples
 
-See the [Examples section](../examples/index.md) for real-world adapter examples with their configuration.
+See the [Examples section](../examples) for real-world adapter examples with their configuration.
 
 
 ## Next Steps
 
-- [Examples](../examples/index.md) - Real-world usage examples
-- [API Reference](../reference/index.md) - Detailed API documentation
+- [Examples](../examples) - Real-world usage examples
+- [API Reference](../reference/mcp_kit/index.md) - Detailed API documentation

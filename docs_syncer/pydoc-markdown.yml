@@ -30,7 +30,7 @@ renderer:
       Method: 3
       Function: 3
       Data: 3
-  docs_base_path: ../../website/docs/python-sdk/reference
+  docs_base_path: ../../website/mcp-kit-python/docs/reference
   relative_output_path: ""
   sidebar_top_level_label: null  # Will be managed by main sidebar
   sidebar_top_level_module_label: null  # Use actual module name
