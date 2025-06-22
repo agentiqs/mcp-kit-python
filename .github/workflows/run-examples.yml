@@ -119,9 +119,6 @@ jobs:
       with:
         version: "latest"
 
-    - name: Install mcp-kit in editable mode
-      run: uv pip install -e .
-
     - name: Install example dependencies
       working-directory: examples/${{ matrix.example }}
       run: uv sync
@@ -158,6 +155,7 @@ jobs:
       timeout-minutes: 10
       run: |
         echo "🚀 Running ${{ matrix.example }} example..."
+        uv pip install -e ../..
         uv run python main.py
 
     - name: Clean up .env file
