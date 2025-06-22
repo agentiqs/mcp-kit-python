@@ -119,12 +119,17 @@ jobs:
       with:
         version: "latest"
 
-    - name: Install mcp-kit in editable mode
-      run: uv pip install -e .
+    - name: Create virtual environment and install mcp-kit in editable mode
+      run: |
+        uv venv
+        uv pip install -e .
 
     - name: Install example dependencies
       working-directory: examples/${{ matrix.example }}
-      run: uv sync
+      run: |
+        # Use the virtual environment created in the parent directory
+        source ../../.venv/bin/activate
+        uv sync
 
     - name: Create .env file with API keys
       working-directory: examples/${{ matrix.example }}
