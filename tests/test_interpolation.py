@@ -55,7 +55,7 @@ class TestInterpolationEngineIntegration:
         """Test edge cases in configuration validation."""
         # Empty prompts config should work
         engine = InterpolationPromptEngine({})
-        assert engine.get_available_prompts() == []
+        assert len(engine.prompts) == 0
 
         # Single character prompt names should work
         engine = InterpolationPromptEngine({"a": "Short prompt for {x}"})
@@ -91,38 +91,6 @@ class TestInterpolationEngineIntegration:
             {"user_email": "test@example.com", "phone_number": "+1-555-123-4567"}
         )
         assert result.messages[0].content.text == "Email: test@example.com, Phone: +1-555-123-4567"
-
-    def test_utility_methods(self):
-        """Test utility methods for prompt introspection."""
-        prompts_config = {
-            "simple": "Hello {name}",
-            "complex": "Welcome {first_name} {last_name} to {service} on {date}",
-            "no_placeholders": "Static message with no variables",
-        }
-
-        engine = InterpolationPromptEngine(prompts_config)
-
-        # Test get_available_prompts
-        available = engine.get_available_prompts()
-        assert set(available) == {"simple", "complex", "no_placeholders"}
-
-        # Test has_prompt
-        assert engine.has_prompt("simple") is True
-        assert engine.has_prompt("nonexistent") is False
-
-        # Test get_prompt_placeholders
-        simple_placeholders = engine.get_prompt_placeholders("simple")
-        assert simple_placeholders == ["name"]
-
-        complex_placeholders = engine.get_prompt_placeholders("complex")
-        assert set(complex_placeholders) == {"first_name", "last_name", "service", "date"}
-
-        no_placeholders = engine.get_prompt_placeholders("no_placeholders")
-        assert no_placeholders == []
-
-        # Test error case for get_prompt_placeholders
-        with pytest.raises(ValueError, match="Prompt 'nonexistent' not found"):
-            engine.get_prompt_placeholders("nonexistent")
 
     @pytest.mark.asyncio
     async def test_error_handling_comprehensive(self):
@@ -163,9 +131,9 @@ class TestInterpolationEngineIntegration:
 
         engine = InterpolationPromptEngine.from_config(config)
         assert isinstance(engine, InterpolationPromptEngine)
-        assert len(engine.prompt_templates) == 2
-        assert "test1" in engine.prompt_templates
-        assert "test2" in engine.prompt_templates
+        assert len(engine.prompts) == 2
+        assert "test1" in engine.prompts
+        assert "test2" in engine.prompts
 
         # Test with empty prompts dict
         config = OmegaConf.create({
@@ -174,29 +142,9 @@ class TestInterpolationEngineIntegration:
         })
 
         engine = InterpolationPromptEngine.from_config(config)
-        assert len(engine.prompt_templates) == 0
+        assert len(engine.prompts) == 0
 
         # Test missing prompts key
         config = OmegaConf.create({"type": "interpolation"})
         with pytest.raises(ValueError, match="Configuration must include a 'prompts' parameter"):
             InterpolationPromptEngine.from_config(config)
-
-    def test_placeholder_extraction_edge_cases(self):
-        """Test placeholder extraction with various edge cases."""
-        test_cases = [
-            ("Simple {placeholder}", ["placeholder"]),
-            ("Multiple {a} and {b} vars", ["a", "b"]),
-            ("Duplicate {var} and {var} placeholders", ["var"]),  # Should deduplicate
-            ("No placeholders at all", []),
-            ("{start} and {end}", ["start", "end"]),
-            ("Malformed { incomplete", []),  # Should handle malformed
-            ("Empty {}", [""]),  # Edge case with empty placeholder
-            ("Numbers {123} work", ["123"]),
-            ("Special {var_name_123} characters", ["var_name_123"]),
-            ("Nested {{not_a_placeholder}}", []),  # Nested braces shouldn't match
-        ]
-
-        for prompt_text, expected_placeholders in test_cases:
-            engine = InterpolationPromptEngine({"test": prompt_text})
-            actual_placeholders = engine.get_prompt_placeholders("test")
-            assert set(actual_placeholders) == set(expected_placeholders), f"Failed for: {prompt_text}"

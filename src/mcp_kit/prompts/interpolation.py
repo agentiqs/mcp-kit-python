@@ -1,7 +1,5 @@
 """Interpolation prompt engine for safe string substitution."""
 
-import re
-
 from mcp.types import GetPromptResult, Prompt, PromptMessage, TextContent
 from omegaconf import DictConfig
 from typing_extensions import Self
@@ -90,33 +88,3 @@ class InterpolationPromptEngine(PromptEngine):
                 )
             ],
         )
-
-    def get_available_prompts(self) -> list[str]:
-        """Get list of available prompt names.
-
-        :return: List of prompt names that can be generated
-        """
-        return list(self.prompts.keys())
-
-    def has_prompt(self, prompt_name: str) -> bool:
-        """Check if a prompt is available.
-
-        :param prompt_name: Name of the prompt to check
-        :return: True if the prompt is available
-        """
-        return prompt_name in self.prompts
-
-    def get_prompt_placeholders(self, prompt_name: str) -> list[str]:
-        """Get list of placeholders in a prompt.
-
-        :param prompt_name: Name of the prompt to analyze
-        :return: List of placeholder names found in the prompt
-        :raises ValueError: If prompt is not found
-        """
-        if prompt_name not in self.prompts:
-            raise ValueError(f"Prompt '{prompt_name}' not found")
-
-        prompt_string = self.prompts[prompt_name]
-        # Find all placeholders in the format {placeholder_name}
-        placeholders = re.findall(r"\{([^}]+)\}", prompt_string)
-        return list(set(placeholders))  # Remove duplicates
