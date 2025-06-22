@@ -131,7 +131,9 @@ jobs:
 
         git commit -m "$COMMIT_MSG"
         git push
-        echo "✅ Documentation successfully updated!"    - name: Create tag in docs repo for versioned release
+        echo "✅ Documentation successfully updated!"
+
+    - name: Create tag in docs repo for versioned release
       if: steps.check_tag.outputs.has_tag == 'true'
       working-directory: website
       run: |
