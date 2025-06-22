@@ -510,20 +510,28 @@ class DocGenerator:
                             frontmatter_pattern = r"^---\n.*?\n---\n\n?"
                             clean_content = re.sub(frontmatter_pattern, "", readme_content, flags=re.DOTALL)
 
-                            # Add GitHub link after the first heading
-                            github_link = f"**📂 [View Source Code](https://github.com/{GITHUB_ORG}/{GITHUB_REPO}/tree/{git_hash}/examples/{subdir.name})**\n\n"
+                            # Add GitHub link at the end of the first section
+                            github_link = f"**📂 [View Source Code](https://github.com/{GITHUB_ORG}/{GITHUB_REPO}/tree/{git_hash}/examples/{subdir.name})**\n"
 
-                            # Insert the GitHub link after the first heading
+                            # Insert the GitHub link at the end of the first section
                             lines = clean_content.split("\n")
                             if lines and lines[0].startswith("#"):
-                                # Find the end of the first heading section
-                                insert_position = 1
-                                # Skip any empty lines after the heading
-                                while insert_position < len(lines) and lines[insert_position].strip() == "":
-                                    insert_position += 1
+                                # Find the end of the first section (before next heading or end of content)
+                                insert_position = len(lines)  # Default to end of content
 
-                                # Insert the GitHub link
-                                lines.insert(insert_position, github_link.rstrip())
+                                # Look for the next heading (section break)
+                                for i in range(1, len(lines)):
+                                    if lines[i].startswith("#"):
+                                        insert_position = i
+                                        break
+
+                                # Skip any trailing empty lines in the first section
+                                while insert_position > 1 and lines[insert_position - 1].strip() == "":
+                                    insert_position -= 1
+
+                                # Insert the GitHub link with proper spacing
+                                lines.insert(insert_position, "")  # Add empty line before
+                                lines.insert(insert_position + 1, github_link.rstrip())  # Add link
                                 clean_content = "\n".join(lines)
 
                             # Create frontmatter for the documentation
