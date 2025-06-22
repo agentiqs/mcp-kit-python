@@ -1,0 +1,47 @@
+# Example configuration for MockedTarget with InterpolationPromptEngine
+target:
+  type: mocked
+  base_target:
+    type: mcp
+    name: customer-service-api
+    url: http://localhost:8080/mcp
+
+  # Mock tools with random responses
+  tool_response_generator:
+    type: random
+
+  # Mock prompts with interpolation
+  prompt_engine:
+    type: interpolation
+    prompts:
+      welcome_message: "Hello {customer_name}, welcome to {service_name}! Your account status is {status}."
+
+      ticket_response: |
+        Dear {customer_name},
+
+        Thank you for contacting {company_name} support.
+
+        Ticket ID: {ticket_id}
+        Subject: {subject}
+        Priority: {priority}
+
+        We will respond within {response_time}.
+
+        Best regards,
+        {agent_name}
+
+      system_notification: "ALERT: {system} requires attention. Status: {status}. Action needed: {action}"
+
+      meeting_invite: |
+        Meeting Invitation
+
+        Subject: {meeting_subject}
+        Date: {date}
+        Time: {time}
+        Duration: {duration}
+        Location: {location}
+
+        Agenda:
+        {agenda}
+
+        Please confirm your attendance by replying to this message.

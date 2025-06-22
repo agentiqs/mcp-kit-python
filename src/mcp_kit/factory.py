@@ -15,6 +15,7 @@ from omegaconf import DictConfig, ListConfig, OmegaConf
 
 from mcp_kit.generators import ToolResponseGenerator
 from mcp_kit.mixins import ConfigurableMixin
+from mcp_kit.prompts import PromptEngine
 from mcp_kit.targets import Target
 
 
@@ -174,3 +175,21 @@ def create_prompts_from_config(config: DictConfig) -> list[Prompt] | None:
         prompts.append(prompt)
 
     return prompts
+
+
+def create_prompt_engine_from_config(config: DictConfig) -> PromptEngine:
+    """Factory function to create any PromptEngine instance from configuration using reflection.
+
+    :param config: PromptEngine configuration from OmegaConf
+    :return: PromptEngine instance
+    :raises ValueError: If engine type is unknown or cannot be instantiated
+    """
+    return cast(
+        PromptEngine,
+        create_object_from_config(
+            config,
+            get_class_name=lambda engine_type: engine_type.capitalize() + "PromptEngine",
+            get_module_name=lambda engine_type: f"mcp_kit.prompts.{engine_type}",
+            object_type_name="engine",
+        ),
+    )

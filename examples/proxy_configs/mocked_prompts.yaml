@@ -1,0 +1,114 @@
+# Example configuration for mocked target with interpolation prompt engine only
+# This configuration mocks only prompts using interpolation, while delegating tool calls to the base target
+target:
+  type: mocked
+  base_target:
+    type: mcp
+    name: customer-service-api
+    url: http://localhost:8080/mcp
+    prompts:
+      - name: welcome_message
+        description: "Welcome message for customers"
+        arguments:
+          - name: customer_name
+            description: "Name of the customer"
+            required: true
+          - name: service_name
+            description: "Name of the service"
+            required: true
+          - name: status
+            description: "Account status"
+            required: true
+      - name: ticket_response
+        description: "Support ticket response template"
+        arguments:
+          - name: customer_name
+            description: "Customer name"
+            required: true
+          - name: company_name
+            description: "Company name"
+            required: true
+          - name: ticket_id
+            description: "Ticket ID"
+            required: true
+          - name: subject
+            description: "Ticket subject"
+            required: true
+          - name: priority
+            description: "Ticket priority"
+            required: true
+          - name: response_time
+            description: "Expected response time"
+            required: true
+          - name: agent_name
+            description: "Support agent name"
+            required: true
+      - name: system_alert
+        description: "System alert notification"
+        arguments:
+          - name: system
+            description: "System name"
+            required: true
+          - name: status
+            description: "System status"
+            required: true
+          - name: action
+            description: "Required action"
+            required: true
+      - name: meeting_invite
+        description: "Meeting invitation template"
+        arguments:
+          - name: meeting_subject
+            description: "Meeting subject"
+            required: true
+          - name: date
+            description: "Meeting date"
+            required: true
+          - name: time
+            description: "Meeting time"
+            required: true
+          - name: duration
+            description: "Meeting duration"
+            required: true
+          - name: location
+            description: "Meeting location"
+            required: true
+          - name: agenda
+            description: "Meeting agenda"
+            required: true
+
+  # Mock prompt responses with interpolation engine
+  prompt_engine:
+    type: interpolation
+    prompts:
+      welcome_message: "Hello {customer_name}, welcome to {service_name}! Your account status is {status}."
+
+      ticket_response: |
+        Dear {customer_name},
+
+        Thank you for contacting {company_name} support.
+
+        Ticket ID: {ticket_id}
+        Subject: {subject}
+        Priority: {priority}
+
+        We will respond within {response_time}.
+
+        Best regards,
+        {agent_name}
+
+      system_alert: "ALERT: {system} requires attention. Status: {status}. Action needed: {action}"
+
+      meeting_invite: |
+        Meeting Invitation
+
+        Subject: {meeting_subject}
+        Date: {date}
+        Time: {time}
+        Duration: {duration}
+        Location: {location}
+
+        Agenda:
+        {agenda}
+
+        Please confirm your attendance.
