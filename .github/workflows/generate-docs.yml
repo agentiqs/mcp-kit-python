@@ -22,7 +22,7 @@ jobs:
         path: mcp-kit-python
         # When triggered by release workflow, checkout the specific tagged commit
         ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
-        fetch-tags: true
+        fetch-depth: 0  # Fetch complete history including all tags
 
     - name: Checkout docs repository
       uses: actions/checkout@v4
