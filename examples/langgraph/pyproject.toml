@@ -8,7 +8,7 @@ authors = [
 ]
 requires-python = ">=3.10,<3.13"
 dependencies = [
-    "mcp-kit[langgraph]",
+    "mcp-kit[langgraph]>=0.2.0",
     "langgraph==0.4.8",
     "langchain[google-genai]==0.3.25",
 ]
