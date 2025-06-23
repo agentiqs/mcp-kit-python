@@ -83,7 +83,7 @@ jobs:
             echo "No changes to commit"
           else
             git add examples/*/pyproject.toml examples/*/uv.lock
-            git commit -m "chore: update mcp-kit version to >=${TARGET_VERSION} in examples"
+            git commit -m "Release branch ${TARGET_VERSION} prep"
             git push origin ${{ github.event.inputs.base_branch }}
             echo "Committed and pushed version updates"
           fi
