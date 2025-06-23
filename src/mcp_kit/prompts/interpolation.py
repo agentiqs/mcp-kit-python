@@ -13,7 +13,7 @@ from mcp_kit.prompts.interfaces import PromptEngine
 class InterpolationPrompt:
     """A prompt with interpolation text and optional default values.
 
-    :param text: The prompt string with {placeholder} syntax
+    :param text: The prompt string with `{placeholder}` syntax
     :param defaults: Optional default values for placeholders
     """
 
@@ -29,7 +29,7 @@ class InterpolationPrompt:
 class InterpolationPromptEngine(PromptEngine):
     """Prompt engine that performs safe string interpolation using predefined prompts.
 
-    This engine uses a map of prompt names to InterpolationPrompt objects with {placeholder}
+    This engine uses a map of prompt names to InterpolationPrompt objects with `{placeholder}`
     syntax for argument substitution. It performs safe string replacement without
     executing arbitrary code like f-strings would.
     """
@@ -46,6 +46,7 @@ class InterpolationPromptEngine(PromptEngine):
         """Create InterpolationPromptEngine from configuration.
 
         Expected config format:
+        ```
         {
             "type": "interpolation",
             "prompts": {
@@ -63,6 +64,7 @@ class InterpolationPromptEngine(PromptEngine):
                 }
             }
         }
+        ```
 
         :param config: Configuration data with prompts
         :return: InterpolationPromptEngine instance
