@@ -410,7 +410,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](https:
 ## Support
 
 - [GitHub Issues](https://github.com/agentiqs/mcp-kit-python/issues)
-- [Documentation](https://agentiqs.ai/docs/category/python-sdk)
+- [Documentation](https://docs.agentiqs.ai/mcp-kit-python/docs)
 - [Examples](https://github.com/agentiqs/mcp-kit-python/blob/main/examples/)
 
 ---
