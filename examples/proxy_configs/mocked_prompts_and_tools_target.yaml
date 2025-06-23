@@ -58,87 +58,33 @@ target:
               default: false
           required: ["report_type"]
     prompts:
-      - name: user_greeting
-        description: "User greeting with notifications"
+      - name: summarize_text
+        description: "Summarize the given text"
         arguments:
-          - name: username
-            description: "Username"
+          - name: text
+            description: "Text to summarize"
             required: true
-          - name: notification_count
-            description: "Number of notifications"
-            required: true
-      - name: error_report
-        description: "Detailed error report"
-        arguments:
-          - name: timestamp
-            description: "Error timestamp"
-            required: true
-          - name: error_code
-            description: "Error code"
-            required: true
-          - name: description
-            description: "Error description"
-            required: true
-          - name: component
-            description: "Affected component"
-            required: true
-          - name: severity
-            description: "Error severity"
-            required: true
-          - name: action
-            description: "Recommended action"
-            required: true
-          - name: support_contact
-            description: "Support contact information"
-            required: true
-      - name: data_summary
-        description: "Data processing summary"
-        arguments:
-          - name: dataset_name
-            description: "Name of the dataset"
-            required: true
-          - name: record_count
-            description: "Number of records processed"
-            required: true
-          - name: error_count
-            description: "Number of errors"
-            required: true
-          - name: duration
-            description: "Processing duration"
-            required: true
-      - name: approval_request
-        description: "Approval request template"
-        arguments:
-          - name: request_type
-            description: "Type of request"
-            required: true
-          - name: submitter
-            description: "Request submitter"
-            required: true
-          - name: submission_date
-            description: "Submission date"
-            required: true
-          - name: request_details
-            description: "Request details"
-            required: true
-      - name: notification_email
-        description: "Email notification template"
-        arguments:
-          - name: subject
-            description: "Email subject"
-            required: true
-          - name: recipient_name
-            description: "Recipient name"
-            required: true
-          - name: message_body
-            description: "Email message body"
-            required: true
-          - name: sender_name
-            description: "Sender name"
+          - name: max_words
+            description: "Maximum number of words"
             required: false
-          - name: sender_title
-            description: "Sender title"
-            required: false
+      - name: code_review
+        description: "Review code and provide feedback"
+        arguments:
+          - name: code
+            description: "Code to review"
+            required: true
+          - name: language
+            description: "Programming language"
+            required: true
+      - name: translate_text
+        description: "Translate text to another language"
+        arguments:
+          - name: text
+            description: "Text to translate"
+            required: true
+          - name: target_language
+            description: "Target language"
+            required: true
 
   # Mock tool responses with random generator
   tool_response_generator:
@@ -148,49 +94,13 @@ target:
   prompt_engine:
     type: interpolation
     prompts:
-      user_greeting:
-        text: "Welcome {username}! You have {notification_count} new notifications."
-
-      error_report:
-        text: |
-          Error Report Generated
-
-          Timestamp: {timestamp}
-          Error Code: {error_code}
-          Description: {description}
-          Affected Component: {component}
-          Severity: {severity}
-
-          Recommended Action: {action}
-          Contact: {support_contact}
-
-      data_summary:
-        text: "Processing complete for {dataset_name}. Records processed: {record_count}, Errors: {error_count}, Duration: {duration}"
-
-      approval_request:
-        text: |
-          Approval Required
-
-          Request Type: {request_type}
-          Submitted by: {submitter}
-          Date: {submission_date}
-
-          Details:
-          {request_details}
-
-          Please review and approve/reject this request.
-
-      notification_email:
-        text: |
-          {subject}
-
-          Hello {recipient_name},
-
-          {message_body}
-
-          Best regards,
-          {sender_name}
-          {sender_title}
+      summarize_text:
+        text: "Summarize this text in {max_words} words or less: {text}"
         defaults:
-          sender_name: "System Administrator"
-          sender_title: "IT Department"
+          max_words: "100"
+
+      code_review:
+        text: "Review this {language} code and provide feedback on best practices and potential issues: {code}"
+
+      translate_text:
+        text: "Translate the following text to {target_language}: {text}"
