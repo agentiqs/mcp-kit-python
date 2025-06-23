@@ -4,7 +4,7 @@ from abc import abstractmethod
 from typing import Any
 
 from mcp import Tool
-from mcp.types import Content
+from mcp.types import Content, GetPromptResult, Prompt
 
 from mcp_kit.mixins import ConfigurableMixin
 
@@ -53,6 +53,23 @@ class Target(ConfigurableMixin):
         :param arguments: Arguments to pass to the tool
         :return: List of content responses from the tool
         """
+        ...
+
+    @abstractmethod
+    async def list_prompts(self) -> list[Prompt]:
+        """List all available prompts for this target.
+
+        :return: List of prompts
+        """
+        ...
+
+    @abstractmethod
+    async def get_prompt(
+        self,
+        name: str,
+        arguments: dict[str, str] | None = None,
+    ) -> GetPromptResult:
+        """Get a specific prompt by name with optional arguments."""
         ...
 
     @abstractmethod

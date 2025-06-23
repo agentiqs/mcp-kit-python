@@ -1,6 +1,6 @@
 [project]
 name = "examples-mcp-client-session"
-version = "0.1.2"
+version = "0.0.1"
 description = "MCP Kit Official MCP Client Session Example"
 readme = "README.md"
 authors = [
@@ -8,7 +8,7 @@ authors = [
 ]
 requires-python = ">=3.10,<3.13"
 dependencies = [
-    "mcp-kit==0.1.2",
+    "mcp-kit",
     "anthropic==0.54.0",
 ]
 

@@ -70,7 +70,7 @@ class TestProxyMCPFromConfig:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                "response_generator": {"type": "random"},
+                "tool_response_generator": {"type": "random"},
             },
         }
 
@@ -85,7 +85,7 @@ class TestProxyMCPFromConfig:
             assert isinstance(proxy.target.target, McpTarget)
             assert proxy.target.target.name == "base-mcp"
             assert isinstance(
-                proxy.target.mock_config.response_generator,
+                proxy.target.mock_config.tool_response_generator,
                 RandomResponseGenerator,
             )
         finally:
@@ -101,7 +101,7 @@ class TestProxyMCPFromConfig:
                     "name": "base-oas",
                     "spec_url": "http://example.com/openapi.json",
                 },
-                "response_generator": {"type": "llm", "model": "gpt-4"},
+                "tool_response_generator": {"type": "llm", "model": "gpt-4"},
             },
         }
 
@@ -115,7 +115,7 @@ class TestProxyMCPFromConfig:
             assert isinstance(proxy.target, MockedTarget)
             assert isinstance(proxy.target.target, OasTarget)
             assert isinstance(
-                proxy.target.mock_config.response_generator,
+                proxy.target.mock_config.tool_response_generator,
                 LlmResponseGenerator,
             )
         finally:
@@ -223,7 +223,7 @@ class TestProxyMCPFromConfig:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                "response_generator": {"type": "invalid_generator"},
+                "tool_response_generator": {"type": "invalid_generator"},
             },
         }
 
@@ -260,7 +260,7 @@ class TestProxyMCPFromConfig:
             Path(config_file).unlink()
 
     def test_mocked_target_with_default_generator(self):
-        """Test creating mocked target with default response generator."""
+        """Test creating mocked target with no generator (delegates to base target)."""
         config_data = {
             "target": {
                 "type": "mocked",
@@ -269,7 +269,7 @@ class TestProxyMCPFromConfig:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                # No response_generator specified - should default to random
+                # No tool_response_generator specified - should delegate to base target
             },
         }
 
@@ -281,9 +281,6 @@ class TestProxyMCPFromConfig:
             proxy = ProxyMCP.from_config(config_file)
 
             assert isinstance(proxy.target, MockedTarget)
-            assert isinstance(
-                proxy.target.mock_config.response_generator,
-                RandomResponseGenerator,
-            )
+            assert proxy.target.mock_config.tool_response_generator is None
         finally:
             Path(config_file).unlink()

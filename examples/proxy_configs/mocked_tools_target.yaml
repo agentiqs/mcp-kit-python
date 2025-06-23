@@ -1,0 +1,71 @@
+# Example configuration for mocked target with tool response generator only
+# This configuration mocks only tool calls using random responses, while delegating prompt calls to the base target
+target:
+  type: mocked
+  base_target:
+    type: mcp
+    name: tools-service-api
+    url: http://localhost:8080/mcp
+    tools:
+      - name: send_email
+        description: "Send an email message"
+        inputSchema:
+          type: object
+          properties:
+            to:
+              type: string
+              description: "Recipient email address"
+            subject:
+              type: string
+              description: "Email subject"
+            body:
+              type: string
+              description: "Email body content"
+            cc:
+              type: array
+              items:
+                type: string
+              description: "CC recipients"
+          required: ["to", "subject", "body"]
+      - name: update_database
+        description: "Update database records"
+        inputSchema:
+          type: object
+          properties:
+            table:
+              type: string
+              description: "Database table name"
+            record_id:
+              type: string
+              description: "Record identifier"
+            data:
+              type: object
+              description: "Data to update"
+            validate:
+              type: boolean
+              description: "Validate before updating"
+              default: true
+          required: ["table", "record_id", "data"]
+      - name: calculate_metrics
+        description: "Calculate performance metrics"
+        inputSchema:
+          type: object
+          properties:
+            metric_type:
+              type: string
+              description: "Type of metric to calculate"
+              enum: ["cpu", "memory", "disk", "network"]
+            time_period:
+              type: string
+              description: "Time period for calculation"
+              enum: ["1h", "24h", "7d", "30d"]
+            include_history:
+              type: boolean
+              description: "Include historical data"
+              default: false
+          required: ["metric_type", "time_period"]
+
+  # Mock tool responses with LLM generator
+  tool_response_generator:
+    type: llm
+    model: openai/gpt-4.1-nano

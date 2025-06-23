@@ -5,7 +5,7 @@ sidebar_position: 3
 
 # Factory System
 
-The factory system provides a centralized, reflection-based approach to creating instances of both `Target` and `ResponseGenerator` from configuration.
+The factory system provides a centralized, reflection-based approach to creating instances of both `Target` and `ToolResponseGenerator` from configuration.
 
 ## Overview
 
@@ -41,7 +41,7 @@ target = create_target_from_config(config)
 
 ### `create_response_generator_from_config()`
 
-Factory function specifically for creating `ResponseGenerator` instances.
+Factory function specifically for creating `ToolResponseGenerator` instances.
 
 **Example:**
 ```python

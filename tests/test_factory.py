@@ -8,6 +8,7 @@ from mcp_kit.factory import (
     create_response_generator_from_config,
     create_target_from_config,
     create_tools_from_config,
+    create_prompts_from_config,
 )
 from mcp_kit.generators import LlmResponseGenerator, RandomResponseGenerator
 from mcp_kit.targets import McpTarget, MockedTarget, MultiplexTarget, OasTarget
@@ -50,7 +51,7 @@ class TestCreateTargetFromConfig:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                "response_generator": {"type": "random"},
+                "tool_response_generator": {"type": "random"},
             }
         )
 
@@ -370,14 +371,14 @@ class TestFactoryIntegration:
                         },
                     ],
                 },
-                "response_generator": {"type": "llm", "model": "gpt-4"},
+                "tool_response_generator": {"type": "llm", "model": "gpt-4"},
             }
         )
 
         target = create_target_from_config(config)
         assert isinstance(target, MockedTarget)
         assert isinstance(target.target, MultiplexTarget)
-        assert isinstance(target.mock_config.response_generator, LlmResponseGenerator)
+        assert isinstance(target.mock_config.tool_response_generator, LlmResponseGenerator)
 
     def test_factory_function_consistency(self):
         """Test that factory functions produce consistent results."""
@@ -420,7 +421,7 @@ class TestFactoryIntegration:
             {
                 "type": "mocked",
                 "base_target": {"type": "mcp", "name": "base-mcp"},
-                "response_generator": {"type": "random"},
+                "tool_response_generator": {"type": "random"},
             },
             {
                 "type": "multiplex",

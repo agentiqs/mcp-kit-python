@@ -8,15 +8,25 @@ from mcp.types import TextContent
 from omegaconf import OmegaConf
 
 from mcp_kit.generators import LlmAuthenticationError
-from mcp_kit.generators.interfaces import ResponseGenerator
+from mcp_kit.generators.interfaces import ToolResponseGenerator
+from mcp_kit.prompts.interfaces import PromptEngine
+from mcp_kit.prompts.interpolation import InterpolationPrompt
 from mcp_kit.targets.interfaces import Target
 from mcp_kit.targets.mocked import MockConfig, MockedTarget
 
 
 @pytest.fixture
+def mock_prompt_engine():
+    """Create a mock prompt engine."""
+    engine = MagicMock(spec=PromptEngine)
+    engine.generate_prompt = AsyncMock()
+    return engine
+
+
+@pytest.fixture
 def mock_generator():
     """Create a mock response generator."""
-    generator = MagicMock(spec=ResponseGenerator)
+    generator = MagicMock(spec=ToolResponseGenerator)
     generator.generate = AsyncMock()
     return generator
 
@@ -24,7 +34,19 @@ def mock_generator():
 @pytest.fixture
 def mock_config(mock_generator):
     """Create a mock configuration."""
-    return MockConfig(response_generator=mock_generator)
+    return MockConfig(tool_response_generator=mock_generator)
+
+
+@pytest.fixture
+def mock_config_with_prompt_engine(mock_prompt_engine):
+    """Create a mock configuration with prompt engine."""
+    return MockConfig(prompt_engine=mock_prompt_engine)
+
+
+@pytest.fixture
+def mock_config_with_both(mock_generator, mock_prompt_engine):
+    """Create a mock configuration with both tool response generator and prompt engine."""
+    return MockConfig(tool_response_generator=mock_generator, prompt_engine=mock_prompt_engine)
 
 
 @pytest.fixture
@@ -50,16 +72,28 @@ class TestMockConfig:
 
     def test_mock_config_creation(self, mock_generator):
         """Test MockConfig creation."""
-        config = MockConfig(response_generator=mock_generator)
-        assert config.response_generator == mock_generator
+        config = MockConfig(tool_response_generator=mock_generator)
+        assert config.tool_response_generator == mock_generator
+
+    def test_mock_config_creation_with_prompt_engine(self, mock_prompt_engine):
+        """Test MockConfig creation with prompt engine."""
+        config = MockConfig(prompt_engine=mock_prompt_engine)
+        assert config.prompt_engine == mock_prompt_engine
+        assert config.tool_response_generator is None
+
+    def test_mock_config_creation_with_both(self, mock_generator, mock_prompt_engine):
+        """Test MockConfig creation with both tool response generator and prompt engine."""
+        config = MockConfig(tool_response_generator=mock_generator, prompt_engine=mock_prompt_engine)
+        assert config.tool_response_generator == mock_generator
+        assert config.prompt_engine == mock_prompt_engine
 
     def test_mock_config_dataclass_behavior(self, mock_generator):
         """Test MockConfig behaves like a dataclass."""
-        config1 = MockConfig(response_generator=mock_generator)
-        config2 = MockConfig(response_generator=mock_generator)
+        config1 = MockConfig(tool_response_generator=mock_generator)
+        config2 = MockConfig(tool_response_generator=mock_generator)
 
         # Should be equal if same generator
-        assert config1.response_generator == config2.response_generator
+        assert config1.tool_response_generator == config2.tool_response_generator
 
 
 class TestMockedTarget:
@@ -85,7 +119,7 @@ class TestMockedTarget:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                "response_generator": {"type": "random"},
+                "tool_response_generator": {"type": "random"},
             }
         )
 
@@ -101,13 +135,13 @@ class TestMockedTarget:
             mock_base.name = "base-mcp"
             mock_create_target.return_value = mock_base
 
-            mock_gen = MagicMock(spec=ResponseGenerator)
+            mock_gen = MagicMock(spec=ToolResponseGenerator)
             mock_create_generator.return_value = mock_gen
 
             target = MockedTarget.from_config(config)
 
             assert target.target == mock_base
-            assert target.mock_config.response_generator == mock_gen
+            assert target.mock_config.tool_response_generator == mock_gen
 
     def test_from_config_with_llm_generator(self):
         """Test MockedTarget.from_config with LLM generator."""
@@ -119,7 +153,7 @@ class TestMockedTarget:
                     "name": "base-oas",
                     "spec_url": "http://example.com/openapi.json",
                 },
-                "response_generator": {"type": "llm", "model": "gpt-4"},
+                "tool_response_generator": {"type": "llm", "model": "gpt-4"},
             }
         )
 
@@ -135,16 +169,16 @@ class TestMockedTarget:
             mock_base.name = "base-oas"
             mock_create_target.return_value = mock_base
 
-            mock_gen = MagicMock(spec=ResponseGenerator)
+            mock_gen = MagicMock(spec=ToolResponseGenerator)
             mock_create_generator.return_value = mock_gen
 
             target = MockedTarget.from_config(config)
 
             assert target.target == mock_base
-            assert target.mock_config.response_generator == mock_gen
+            assert target.mock_config.tool_response_generator == mock_gen
 
     def test_from_config_with_default_generator(self):
-        """Test MockedTarget.from_config with default generator (when not specified)."""
+        """Test MockedTarget.from_config with no generator (delegates to base target)."""
         config = OmegaConf.create(
             {
                 "type": "mocked",
@@ -153,7 +187,7 @@ class TestMockedTarget:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                # No response_generator specified
+                # No tool_response_generator specified - should delegate to base target
             }
         )
 
@@ -169,17 +203,13 @@ class TestMockedTarget:
             mock_base.name = "base-mcp"
             mock_create_target.return_value = mock_base
 
-            mock_gen = MagicMock(spec=ResponseGenerator)
-            mock_create_generator.return_value = mock_gen
-
             target = MockedTarget.from_config(config)
 
-            # Should call create_response_generator_from_config with default random config
-            expected_config = OmegaConf.create({"type": "random"})
-            mock_create_generator.assert_called_once()
-            # Verify the config passed is equivalent to random config
-            passed_config = mock_create_generator.call_args[0][0]
-            assert passed_config.type == "random"
+            # Should NOT call create_response_generator_from_config since no generator specified
+            mock_create_generator.assert_not_called()
+
+            # The target should have no generator configured
+            assert target.mock_config.tool_response_generator is None
 
     @pytest.mark.asyncio
     async def test_initialize(self, mocked_target, mock_base_target):
@@ -323,13 +353,13 @@ class TestMockedTarget:
         base_target.list_tools = AsyncMock()
 
         # Create first level mock
-        gen1 = MagicMock(spec=ResponseGenerator)
-        config1 = MockConfig(response_generator=gen1)
+        gen1 = MagicMock(spec=ToolResponseGenerator)
+        config1 = MockConfig(tool_response_generator=gen1)
         mocked1 = MockedTarget(base_target, config1)
 
         # Create second level mock
-        gen2 = MagicMock(spec=ResponseGenerator)
-        config2 = MockConfig(response_generator=gen2)
+        gen2 = MagicMock(spec=ToolResponseGenerator)
+        config2 = MockConfig(tool_response_generator=gen2)
         mocked2 = MockedTarget(mocked1, config2)
 
         assert mocked2.name == "base_mocked_mocked"
@@ -374,3 +404,150 @@ class TestMockedTarget:
 
         with pytest.raises(RuntimeError, match="Close failed"):
             await mocked_target.close()
+
+
+class TestMockedTargetPromptEngine:
+    """Test cases for MockedTarget prompt engine functionality."""
+
+    @pytest.mark.asyncio
+    async def test_from_config_with_interpolation_prompt_engine(self):
+        """Test MockedTarget.from_config with interpolation prompt engine."""
+        config = OmegaConf.create({
+            "type": "mocked",
+            "base_target": {
+                "type": "mcp",
+                "name": "base-mcp",
+                "url": "http://example.com/mcp",
+            },
+            "prompt_engine": {
+                "type": "interpolation",
+                "prompts": {
+                    "test_prompt": "Execute prompt {prompt_name} with {arguments}",
+                    "default": "Call {prompt_name}"
+                }
+            }
+        })
+
+        with (
+            patch("mcp_kit.targets.mocked.create_target_from_config") as mock_create_target,
+            patch("mcp_kit.targets.mocked.create_prompt_engine_from_config") as mock_create_prompt_engine,
+        ):
+            mock_base = MagicMock(spec=Target)
+            mock_base.name = "base-mcp"
+            mock_create_target.return_value = mock_base
+
+            mock_engine = MagicMock(spec=PromptEngine)
+            mock_create_prompt_engine.return_value = mock_engine
+
+            target = MockedTarget.from_config(config)
+
+            assert target.target == mock_base
+            assert target.mock_config.prompt_engine == mock_engine
+            assert target.mock_config.tool_response_generator is None
+
+    @pytest.mark.asyncio
+    async def test_get_prompt_success(self, mock_base_target, mock_prompt_engine):
+        """Test get_prompt generates mock response instead of calling base target."""
+        from mcp.types import Prompt, GetPromptResult, PromptMessage, TextContent
+
+        prompt = Prompt(name="test_prompt", description="Test prompt", arguments=[])
+        mock_base_target.list_prompts.return_value = [prompt]
+
+        mock_content = GetPromptResult(
+            description="Mock prompt response",
+            messages=[PromptMessage(role="user", content=TextContent(type="text", text="Mock prompt result"))]
+        )
+        mock_prompt_engine.generate.return_value = mock_content
+
+        config = MockConfig(prompt_engine=mock_prompt_engine)
+        mocked_target = MockedTarget(mock_base_target, config)
+
+        result = await mocked_target.get_prompt("test_prompt", {"param": "value"})
+
+        assert result == mock_content
+        mock_prompt_engine.generate.assert_called_once_with(
+            "base-target", prompt, {"param": "value"}
+        )
+        # Should NOT call the base target's get_prompt
+        mock_base_target.get_prompt.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_get_prompt_delegates_to_base_when_no_prompt_engine(self):
+        """Test that get_prompt delegates to base target when no prompt engine is configured."""
+        from mcp.types import GetPromptResult, PromptMessage, TextContent
+
+        # Create base target
+        base_target = MagicMock(spec=Target)
+        base_target.name = "base-target"
+        base_target.get_prompt = AsyncMock()
+
+        # Expected response from base target
+        expected_response = GetPromptResult(
+            description="Base prompt response",
+            messages=[PromptMessage(role="user", content=TextContent(type="text", text="Base response"))]
+        )
+        base_target.get_prompt.return_value = expected_response
+
+        # Mock config with no prompt engine
+        config = MockConfig()
+        mocked_target = MockedTarget(base_target, config)
+
+        result = await mocked_target.get_prompt("test_prompt", {"param": "value"})
+
+        # Should delegate to base target
+        assert result == expected_response
+        base_target.get_prompt.assert_called_once_with("test_prompt", {"param": "value"})
+
+    @pytest.mark.asyncio
+    async def test_get_prompt_prompt_not_found(self, mock_base_target, mock_prompt_engine):
+        """Test get_prompt raises error when prompt is not found."""
+        mock_base_target.list_prompts.return_value = []
+
+        config = MockConfig(prompt_engine=mock_prompt_engine)
+        mocked_target = MockedTarget(mock_base_target, config)
+
+        with pytest.raises(
+            ValueError, match="Prompt unknown_prompt not found in prompts for server"
+        ):
+            await mocked_target.get_prompt("unknown_prompt", {"param": "value"})
+
+    @pytest.mark.asyncio
+    async def test_integration_with_real_interpolation_prompt_engine(self):
+        """Integration test with actual InterpolationPromptEngine."""
+        from mcp_kit.prompts.interpolation import InterpolationPromptEngine
+        from mcp.types import Prompt
+
+        # Create base target
+        base_target = MagicMock(spec=Target)
+        base_target.name = "test-target"
+        base_target.list_prompts = AsyncMock()
+
+        # Create real InterpolationPromptEngine
+        prompts_config = {
+            "greeting": InterpolationPrompt(
+                text="Hello {name}, welcome to {service}!",
+                defaults={"service": "our platform"}
+            ),
+        }
+        prompt_engine = InterpolationPromptEngine(prompts_config)
+
+        # Create MockedTarget with prompt engine
+        config = MockConfig(prompt_engine=prompt_engine)
+        mocked_target = MockedTarget(base_target, config)
+
+        # Setup prompt
+        prompt = Prompt(name="greeting", description="Greeting prompt", arguments=[])
+        base_target.list_prompts.return_value = [prompt]
+
+        # Test with explicit service override
+        result = await mocked_target.get_prompt("greeting", {"name": "Alice", "service": "MCP"})
+        assert result.description == "Interpolated response for prompt 'greeting' from test-target"
+        assert len(result.messages) == 1
+        assert result.messages[0].content.text == "Hello Alice, welcome to MCP!"
+
+        # Test with default service value (service not provided)
+        result_default = await mocked_target.get_prompt("greeting", {"name": "Bob"})
+        assert result_default.description == "Interpolated response for prompt 'greeting' from test-target"
+        assert len(result_default.messages) == 1
+        assert result_default.messages[0].content.text == "Hello Bob, welcome to our platform!"
+        assert result.messages[0].role == "user"

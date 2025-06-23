@@ -3,32 +3,15 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.16.1
+  - repo: local
     hooks:
       - id: mypy
-        args:
-          - --python-version=3.10
-          - --strict
-          - --ignore-missing-imports
-          - --warn-return-any
-          - --warn-unused-configs
-          - --disallow-untyped-defs
-          - --disallow-incomplete-defs
-          - --check-untyped-defs
-          - --disallow-untyped-decorators
-          - --no-implicit-optional
-          - --warn-redundant-casts
-          - --warn-unused-ignores
-          - --warn-no-return
-          - --warn-unreachable
-          - --no-implicit-reexport
-          - --strict-equality
-          - --exclude=tests/.*
-        additional_dependencies:
-          - types-redis
-          - types-cachetools
-          - types-PyYAML
+        name: mypy
+        entry: uv run mypy
+        language: system
+        types: [python]
+        files: ^src/mcp_kit/
+        pass_filenames: true
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.11.13

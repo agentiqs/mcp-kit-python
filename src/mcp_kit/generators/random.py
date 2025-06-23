@@ -9,10 +9,10 @@ from mcp.types import Content, TextContent
 from omegaconf import DictConfig
 from typing_extensions import Self
 
-from mcp_kit.generators.interfaces import ResponseGenerator
+from mcp_kit.generators.interfaces import ToolResponseGenerator
 
 
-class RandomResponseGenerator(ResponseGenerator):
+class RandomResponseGenerator(ToolResponseGenerator):
     """Generate random text content for testing.
 
     This generator creates synthetic responses containing random text,

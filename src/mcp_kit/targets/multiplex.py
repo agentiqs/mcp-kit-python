@@ -4,7 +4,7 @@ import asyncio
 from typing import Any
 
 from mcp import ErrorData, McpError
-from mcp.types import Content, Tool
+from mcp.types import Content, GetPromptResult, Prompt, Tool
 from omegaconf import DictConfig
 from typing_extensions import Self
 
@@ -72,7 +72,7 @@ class MultiplexTarget(Target):
             target_tools = await target.list_tools()
             for tool in target_tools:
                 # Ensure unique tool names across targets
-                namespaced_tool_name = self._get_namespaced_tool_name(target, tool.name)
+                namespaced_tool_name = self._get_namespaced_name(target, tool.name)
                 tools.append(
                     Tool(
                         name=namespaced_tool_name,
@@ -98,7 +98,7 @@ class MultiplexTarget(Target):
         :return: List of content responses from the tool
         :raises McpError: If the tool name is invalid or target not found
         """
-        target_name = self._get_namespace_from_tool_name(name)
+        target_name = self._get_namespace_from_name(name, "tool")
         if target_name not in self._targets_dict:
             raise McpError(
                 ErrorData(
@@ -108,27 +108,76 @@ class MultiplexTarget(Target):
             )
         return await self._targets_dict[target_name].call_tool(name, arguments)
 
-    def _get_namespaced_tool_name(self, target: Target, tool_name: str) -> str:
-        """Create a namespaced tool name.
+    async def list_prompts(self) -> list[Prompt]:
+        """List all prompts from all targets with namespace prefixes.
 
-        :param target: The target that owns the tool
-        :param tool_name: The original tool name
-        :return: Namespaced tool name in format 'target_name.tool_name'
+        Each prompt name is prefixed with the target name to ensure uniqueness
+        across multiple targets.
+
+        :return: List of all namespaced prompts from all targets
         """
-        return target.name + "." + tool_name
+        prompts = []
+        for target in self._targets_dict.values():
+            target_prompts = await target.list_prompts()
+            for prompt in target_prompts:
+                # Ensure unique prompt names across targets
+                namespaced_prompt_name = self._get_namespaced_name(target, prompt.name)
+                prompts.append(
+                    Prompt(
+                        name=namespaced_prompt_name,
+                        description=prompt.description,
+                        arguments=prompt.arguments,
+                    ),
+                )
+        return prompts
 
-    def _get_namespace_from_tool_name(self, name: str) -> str:
-        """Extract target name from a namespaced tool name.
+    async def get_prompt(
+        self,
+        name: str,
+        arguments: dict[str, str] | None = None,
+    ) -> GetPromptResult:
+        """Get a prompt from the appropriate target.
 
-        :param name: Namespaced tool name
+        The prompt name must be in the format 'target_name.prompt_name' to identify
+        which target should handle the request.
+
+        :param name: Namespaced prompt name (target_name.prompt_name)
+        :param arguments: Arguments to pass to the prompt
+        :return: Prompt result from the target
+        :raises McpError: If the prompt name is invalid or target not found
+        """
+        target_name = self._get_namespace_from_name(name, "prompt")
+        if target_name not in self._targets_dict:
+            raise McpError(
+                ErrorData(
+                    code=400,
+                    message=f"Prompt '{name}' not found",
+                ),
+            )
+        return await self._targets_dict[target_name].get_prompt(name, arguments)
+
+    def _get_namespaced_name(self, target: Target, name: str) -> str:
+        """Create a namespaced name for tools or prompts.
+
+        :param target: The target that owns the item
+        :param name: The original name
+        :return: Namespaced name in format 'target_name.name'
+        """
+        return target.name + "." + name
+
+    def _get_namespace_from_name(self, name: str, item_type: str) -> str:
+        """Extract target name from a namespaced name.
+
+        :param name: Namespaced name
+        :param item_type: Type of item ("tool" or "prompt") for error messages
         :return: Target name
-        :raises McpError: If the tool name format is invalid
+        :raises McpError: If the name format is invalid
         """
         if "." not in name:
             raise McpError(
                 ErrorData(
                     code=400,
-                    message=f"Invalid tool name '{name}', expected format 'target_name.tool_name'",
+                    message=f"Invalid {item_type} name '{name}', expected format 'target_name.{item_type}_name'",
                 ),
             )
         return name.split(".")[0]

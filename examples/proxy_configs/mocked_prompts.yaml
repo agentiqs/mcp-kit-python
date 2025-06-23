@@ -1,0 +1,51 @@
+# Example configuration for mocked target with interpolation prompt engine only
+# This configuration mocks only prompts using interpolation, while delegating tool calls to the base target
+target:
+  type: mocked
+  base_target:
+    type: mcp
+    name: customer-service-api
+    url: http://localhost:8080/mcp
+    prompts:
+      - name: summarize_text
+        description: "Summarize the given text"
+        arguments:
+          - name: text
+            description: "Text to summarize"
+            required: true
+          - name: max_words
+            description: "Maximum number of words"
+            required: false
+      - name: code_review
+        description: "Review code and provide feedback"
+        arguments:
+          - name: code
+            description: "Code to review"
+            required: true
+          - name: language
+            description: "Programming language"
+            required: true
+      - name: translate_text
+        description: "Translate text to another language"
+        arguments:
+          - name: text
+            description: "Text to translate"
+            required: true
+          - name: target_language
+            description: "Target language"
+            required: true
+
+  # Mock prompt responses with interpolation engine
+  prompt_engine:
+    type: interpolation
+    prompts:
+      summarize_text:
+        text: "Summarize this text in {max_words} words or less: {text}"
+        defaults:
+          max_words: "100"
+
+      code_review:
+        text: "Review this {language} code and provide feedback on best practices and potential issues: {code}"
+
+      translate_text:
+        text: "Translate the following text to {target_language}: {text}"

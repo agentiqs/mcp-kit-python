@@ -1,6 +1,6 @@
 """Factory for creating instances from configuration using reflection.
 This module provides a central registry to avoid circular imports and supports
-both Target and ResponseGenerator creation.
+both Target and ToolResponseGenerator creation.
 """
 
 from __future__ import annotations
@@ -10,11 +10,12 @@ from collections.abc import Callable
 from typing import Any, cast
 
 from mcp import Tool
-from mcp.types import ToolAnnotations
+from mcp.types import Prompt, PromptArgument, ToolAnnotations
 from omegaconf import DictConfig, ListConfig, OmegaConf
 
-from mcp_kit.generators import ResponseGenerator
+from mcp_kit.generators import ToolResponseGenerator
 from mcp_kit.mixins import ConfigurableMixin
+from mcp_kit.prompts import PromptEngine
 from mcp_kit.targets import Target
 
 
@@ -86,15 +87,15 @@ def create_target_from_config(config: DictConfig) -> Target:
     )
 
 
-def create_response_generator_from_config(config: DictConfig) -> ResponseGenerator:
-    """Factory function to create any ResponseGenerator instance from configuration using reflection.
+def create_response_generator_from_config(config: DictConfig) -> ToolResponseGenerator:
+    """Factory function to create any ToolResponseGenerator instance from configuration using reflection.
 
-    :param config: ResponseGenerator configuration from OmegaConf
-    :return: ResponseGenerator instance
+    :param config: ToolResponseGenerator configuration from OmegaConf
+    :return: ToolResponseGenerator instance
     :raises ValueError: If generator type is unknown or cannot be instantiated
     """
     return cast(
-        ResponseGenerator,
+        ToolResponseGenerator,
         create_object_from_config(
             config,
             get_class_name=lambda generator_type: generator_type.capitalize() + "ResponseGenerator",
@@ -139,3 +140,56 @@ def create_tools_from_config(config: DictConfig) -> list[Tool] | None:
         tools.append(tool)
 
     return tools
+
+
+def create_prompts_from_config(config: DictConfig) -> list[Prompt] | None:
+    """Factory function to create any Prompt instance from configuration using reflection.
+
+    :param config: Prompt configuration from OmegaConf
+    :return: List of Prompt instances or None if no prompts are defined
+    """
+    prompts_config: ListConfig | None = config.get("prompts")
+    if prompts_config is None:
+        return None
+
+    prompts = []
+    for prompt_config in prompts_config:
+        # Handle prompt arguments if present
+        arguments = None
+        arguments_config: ListConfig | None = prompt_config.get("arguments")
+        if arguments_config is not None:
+            arguments = []
+            for arg_config in arguments_config:
+                arg = PromptArgument(
+                    name=arg_config.name,
+                    description=arg_config.get("description"),
+                    required=arg_config.get("required"),
+                )
+                arguments.append(arg)
+
+        prompt = Prompt(
+            name=prompt_config.name,
+            description=prompt_config.get("description"),
+            arguments=arguments,
+        )
+        prompts.append(prompt)
+
+    return prompts
+
+
+def create_prompt_engine_from_config(config: DictConfig) -> PromptEngine:
+    """Factory function to create any PromptEngine instance from configuration using reflection.
+
+    :param config: PromptEngine configuration from OmegaConf
+    :return: PromptEngine instance
+    :raises ValueError: If engine type is unknown or cannot be instantiated
+    """
+    return cast(
+        PromptEngine,
+        create_object_from_config(
+            config,
+            get_class_name=lambda engine_type: engine_type.capitalize() + "PromptEngine",
+            get_module_name=lambda engine_type: f"mcp_kit.prompts.{engine_type}",
+            object_type_name="engine",
+        ),
+    )

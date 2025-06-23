@@ -42,7 +42,7 @@ def test_integration():
                 "name": "base-mcp",
                 "url": "http://localhost:8080/mcp",
             },
-            "response_generator": {"type": "random"},
+            "tool_response_generator": {"type": "random"},
         },
     )
     mocked_target = create_target_from_config(mocked_config)

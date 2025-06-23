@@ -10,9 +10,9 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.server import Context
 from mcp.server.session import ServerSessionT
 from mcp.shared.context import LifespanContextT
-from mcp.types import Content
+from mcp.types import Content, GetPromptResult, Prompt
 from omegaconf import DictConfig
-from openapi_mcp import create_mcp_server  #  type: ignore[import-untyped]
+from openapi_mcp import create_mcp_server  # type: ignore[import-untyped]
 from typing_extensions import Self
 
 from mcp_kit.targets.interfaces import Target
@@ -111,6 +111,31 @@ class OasTarget(Target):
                 "OasTarget server is not initialized. Call initialize() first.",
             )
         return list(await self._fast_mcp.call_tool(name, arguments or {}))
+
+    async def list_prompts(self) -> list[Prompt]:
+        """List all available prompts.
+
+        OpenAPI specifications do not define prompts, so this returns an empty list.
+
+        :return: Empty list of prompts
+        """
+        return []
+
+    async def get_prompt(
+        self,
+        name: str,
+        arguments: dict[str, str] | None = None,
+    ) -> GetPromptResult:
+        """Get a specific prompt by name with optional arguments.
+
+        OpenAPI specifications do not define prompts, so this raises an error.
+
+        :param name: Name of the prompt to get
+        :param arguments: Arguments to pass to the prompt
+        :return: Prompt result with messages
+        :raises ValueError: Always, as OAS targets don't support prompts
+        """
+        raise ValueError(f"OAS targets do not support prompts. Prompt '{name}' not found.")
 
     async def close(self) -> None:
         """Clean up the target by releasing the FastMCP server."""

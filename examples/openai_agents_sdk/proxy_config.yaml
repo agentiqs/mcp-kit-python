@@ -1,7 +1,7 @@
 # Example configuration for a mocked Odoo MCP target with LLM-generated responses
 target:
   type: mocked
-  response_generator:
+  tool_response_generator:
     type: llm
     model: openai/gpt-4.1-nano
   base_target:

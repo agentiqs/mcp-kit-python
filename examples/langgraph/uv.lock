@@ -311,7 +311,7 @@ wheels = [
 
 [[package]]
 name = "examples-langgraph"
-version = "0.1.0"
+version = "0.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "langchain", extra = ["google-genai"] },
@@ -323,7 +323,7 @@ dependencies = [
 requires-dist = [
     { name = "langchain", extras = ["google-genai"], specifier = "==0.3.25" },
     { name = "langgraph", specifier = "==0.4.8" },
-    { name = "mcp-kit", extras = ["langgraph"], directory = "../../" },
+    { name = "mcp-kit", extras = ["langgraph"] },
 ]
 
 [[package]]
@@ -1148,7 +1148,7 @@ wheels = [
 [[package]]
 name = "mcp-kit"
 version = "0.1.0"
-source = { directory = "../../" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "litellm" },
@@ -1159,30 +1159,14 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "typing-extensions" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/34/8d/842d690839dafed9c51a8ff9fb6bc09ede08243d0c99a9282f475d39003e/mcp_kit-0.1.0.tar.gz", hash = "sha256:bdd30395a871b1bd6ac94904402842d1d9667b97a637b2fe6a8cf07ae655b61b", size = 1064185, upload-time = "2025-06-17T19:43:34.481Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0d/7b/dda7c5a994aa07f9876d8f543e6793f328babb9e3e51115b163a2b7d98f3/mcp_kit-0.1.0-py3-none-any.whl", hash = "sha256:3bce7e38855f1d3a59527dd9d4d9e2318a5448c12fc07601ca419c3497653ab6", size = 28660, upload-time = "2025-06-17T19:43:32.307Z" },
+]
 
 [package.optional-dependencies]
 langgraph = [
     { name = "langchain-mcp-adapters" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.115.12,<1" },
-    { name = "langchain-mcp-adapters", marker = "extra == 'langgraph'", specifier = "==0.1.1" },
-    { name = "litellm", specifier = ">=1.72.6,<2" },
-    { name = "mcp", specifier = ">=1.9.4,<1.10" },
-    { name = "omegaconf", specifier = ">=2.3.0,<3" },
-    { name = "openapi-core", specifier = ">=0.19.5,<1" },
-    { name = "openapi-mcp", specifier = ">=0.1.0,<1" },
-    { name = "python-dotenv", specifier = ">=1.1.0,<2" },
-    { name = "typing-extensions", specifier = ">=4.14.0,<5" },
-]
-provides-extras = ["langgraph"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pre-commit", specifier = ">=4.2.0" },
-    { name = "pytest", specifier = ">=8.4.0,<9" },
 ]
 
 [[package]]

@@ -1,0 +1,106 @@
+# Example configuration for mocked target with both tool response generator and prompt engine
+# This configuration mocks both tool calls (with random responses) and prompts (with interpolation)
+target:
+  type: mocked
+  base_target:
+    type: mcp
+    name: full-service-api
+    url: http://localhost:8080/mcp
+    tools:
+      - name: create_user
+        description: "Create a new user account"
+        inputSchema:
+          type: object
+          properties:
+            username:
+              type: string
+              description: "Username for the new account"
+            email:
+              type: string
+              description: "Email address"
+            role:
+              type: string
+              description: "User role"
+              enum: ["admin", "user", "guest"]
+          required: ["username", "email"]
+      - name: process_data
+        description: "Process a dataset"
+        inputSchema:
+          type: object
+          properties:
+            dataset_name:
+              type: string
+              description: "Name of the dataset to process"
+            format:
+              type: string
+              description: "Output format"
+              enum: ["json", "csv", "xml"]
+            validate:
+              type: boolean
+              description: "Whether to validate data"
+              default: true
+          required: ["dataset_name"]
+      - name: generate_report
+        description: "Generate a system report"
+        inputSchema:
+          type: object
+          properties:
+            report_type:
+              type: string
+              description: "Type of report to generate"
+              enum: ["performance", "security", "usage"]
+            date_range:
+              type: string
+              description: "Date range for the report"
+            include_details:
+              type: boolean
+              description: "Include detailed information"
+              default: false
+          required: ["report_type"]
+    prompts:
+      - name: summarize_text
+        description: "Summarize the given text"
+        arguments:
+          - name: text
+            description: "Text to summarize"
+            required: true
+          - name: max_words
+            description: "Maximum number of words"
+            required: false
+      - name: code_review
+        description: "Review code and provide feedback"
+        arguments:
+          - name: code
+            description: "Code to review"
+            required: true
+          - name: language
+            description: "Programming language"
+            required: true
+      - name: translate_text
+        description: "Translate text to another language"
+        arguments:
+          - name: text
+            description: "Text to translate"
+            required: true
+          - name: target_language
+            description: "Target language"
+            required: true
+
+  # Mock tool responses with random generator
+  tool_response_generator:
+    type: random
+
+  # Mock prompt responses with interpolation engine
+  prompt_engine:
+    type: interpolation
+    prompts:
+      summarize_text:
+        text: "Summarize this text in {max_words} words or less: {text}"
+        defaults:
+          max_words: "100"
+
+      code_review:
+        text: "Review this {language} code and provide feedback on best practices and potential issues: {code}"
+
+      translate_text:
+        text: "Translate the following text to {target_language}: {text}"

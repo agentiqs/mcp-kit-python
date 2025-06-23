@@ -35,6 +35,51 @@ jobs:
             exit 1
           fi
 
+      - name: Set up UV
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Update mcp-kit version in examples
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          # Extract major.minor from version (e.g., v0.1.x -> 0.1)
+          if [[ $VERSION =~ ^v([0-9]+)\.([0-9]+)\.x$ ]]; then
+            MAJOR=${BASH_REMATCH[1]}
+            MINOR=${BASH_REMATCH[2]}
+            TARGET_VERSION="${MAJOR}.${MINOR}.0"
+          else
+            echo "Failed to extract version components"
+            exit 1
+          fi
+
+          echo "Updating mcp-kit to version >=${TARGET_VERSION} in examples"
+
+          # Iterate through all direct subdirectories in examples/
+          for example_dir in examples/*/; do
+            if [ -d "$example_dir" ] && [ -f "${example_dir}pyproject.toml" ]; then
+              echo "Updating ${example_dir}"
+              cd "$example_dir"
+              uv add "mcp-kit>=${TARGET_VERSION}" --frozen
+              cd - > /dev/null
+            fi
+          done
+
+      - name: Commit version updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if there are changes to commit
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git add examples/*/pyproject.toml examples/*/uv.lock
+            git commit -m "chore: update mcp-kit version to >=${TARGET_VERSION} in examples"
+            git push origin ${{ github.event.inputs.base_branch }}
+            echo "Committed and pushed version updates"
+          fi
+
       - name: Create release branch
         run: |
           BRANCH_NAME="release/${{ github.event.inputs.version }}"
@@ -53,30 +98,3 @@ jobs:
 
           echo "Created release branch: $BRANCH_NAME"
 
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: release/${{ github.event.inputs.version }}
-          base: ${{ github.event.inputs.base_branch }}
-          title: "Release ${{ github.event.inputs.version }}"
-          body: |
-            ## Release ${{ github.event.inputs.version }}
-
-            This PR creates a new release branch for version ${{ github.event.inputs.version }}.
-
-            ### Checklist before merging:
-            - [ ] All tests pass
-            - [ ] Documentation is updated
-            - [ ] CHANGELOG.md is updated
-            - [ ] Version is ready for release
-
-            ### What happens when merged:
-            - Release workflow will automatically trigger
-            - Git tag will be created automatically
-            - GitHub release will be created
-            - Package will be built and optionally published to PyPI
-
-            ### To release a specific patch version:
-            Use the manual workflow dispatch on the release workflow after merging this PR.
-          draft: true

@@ -9,10 +9,10 @@ from mcp.types import Content
 from mcp_kit.mixins import ConfigurableMixin
 
 
-class ResponseGenerator(ConfigurableMixin):
+class ToolResponseGenerator(ConfigurableMixin):
     """Interface for generating response data for an MCP call_tool.
 
-    Response generators create synthetic responses for MCP tool calls,
+    Tool response generators create synthetic responses for MCP tool calls,
     which is useful for testing, mocking, or simulation scenarios.
     """
 

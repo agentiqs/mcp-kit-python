@@ -264,7 +264,7 @@ class TestProxyMCP:
                     "name": "base-mcp",
                     "url": "http://example.com/mcp",
                 },
-                "response_generator": {"type": "random"},
+                "tool_response_generator": {"type": "random"},
             }
         }
 
