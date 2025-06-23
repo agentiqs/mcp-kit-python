@@ -45,7 +45,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://agentiqs.ai/"
-Documentation = "https://agentiqs.ai/docs/category/python-sdk"
+Documentation = "https://docs.agentiqs.ai/mcp-kit-python/docs"
 Repository = "https://github.com/agentiqs/mcp-kit-python"
 Issues = "https://github.com/agentiqs/mcp-kit-python/issues"
 Changelog = "https://github.com/agentiqs/mcp-kit-python/blob/main/CHANGELOG.md"
