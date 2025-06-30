@@ -11,6 +11,7 @@ from .mcp import McpTarget
 from .mocked import MockedTarget
 from .multiplex import MultiplexTarget
 from .oas import OasTarget
+from .registry import RegistryTarget
 
 __all__ = [
     "McpTarget",
@@ -18,4 +19,5 @@ __all__ = [
     "MultiplexTarget",
     "OasTarget",
     "Target",
+    "RegistryTarget",
 ]
