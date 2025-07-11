@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from mcp import Tool
+from mcp.server.fastmcp.exceptions import ToolError
 from mcp.types import TextContent
 from omegaconf import OmegaConf
 
@@ -19,6 +20,34 @@ class TestOasTarget:
         assert target.name == "test-oas"
         assert target._spec_url == "http://example.com/openapi.json"
         assert target._fast_mcp is None
+
+    def test_init_with_include_prefix(self):
+        """Test OasTarget initialization with include_tools_with_prefix."""
+        target = OasTarget(
+            name="test-oas", spec_url="http://example.com/openapi.json", include_tools_with_prefix="api_"
+        )
+        assert target._include_tools_with_prefix == "api_"
+        assert target._exclude_tools_with_prefix is None
+
+    def test_init_with_exclude_prefix(self):
+        """Test OasTarget initialization with exclude_tools_with_prefix."""
+        target = OasTarget(
+            name="test-oas", spec_url="http://example.com/openapi.json", exclude_tools_with_prefix="internal_"
+        )
+        assert target._include_tools_with_prefix is None
+        assert target._exclude_tools_with_prefix == "internal_"
+
+    def test_init_with_both_prefixes_raises_error(self):
+        """Test that providing both include and exclude prefixes raises ValueError."""
+        with pytest.raises(
+            ValueError, match="Cannot specify both include_tools_with_prefix and exclude_tools_with_prefix"
+        ):
+            OasTarget(
+                name="test-oas",
+                spec_url="http://example.com/openapi.json",
+                include_tools_with_prefix="api_",
+                exclude_tools_with_prefix="internal_",
+            )
 
     def test_name_property(self):
         """Test name property."""
@@ -38,6 +67,36 @@ class TestOasTarget:
         target = OasTarget.from_config(config)
         assert target.name == "config-oas"
         assert target._spec_url == "http://example.com/openapi.json"
+
+    def test_from_config_with_include_prefix(self):
+        """Test OasTarget.from_config with include_tools_with_prefix."""
+        config = OmegaConf.create(
+            {
+                "type": "oas",
+                "name": "config-oas",
+                "spec_url": "http://example.com/openapi.json",
+                "include_tools_with_prefix": "public_",
+            }
+        )
+
+        target = OasTarget.from_config(config)
+        assert target._include_tools_with_prefix == "public_"
+        assert target._exclude_tools_with_prefix is None
+
+    def test_from_config_with_exclude_prefix(self):
+        """Test OasTarget.from_config with exclude_tools_with_prefix."""
+        config = OmegaConf.create(
+            {
+                "type": "oas",
+                "name": "config-oas",
+                "spec_url": "http://example.com/openapi.json",
+                "exclude_tools_with_prefix": "admin_",
+            }
+        )
+
+        target = OasTarget.from_config(config)
+        assert target._include_tools_with_prefix is None
+        assert target._exclude_tools_with_prefix == "admin_"
 
     def test_from_config_minimal(self):
         """Test OasTarget.from_config with minimal configuration."""
@@ -143,6 +202,80 @@ class TestOasTarget:
         assert result == []
 
     @pytest.mark.asyncio
+    async def test_list_tools_with_include_prefix(self):
+        """Test list_tools filters tools with include_tools_with_prefix."""
+        target = OasTarget("test-oas", "http://example.com/openapi.json", include_tools_with_prefix="api_")
+
+        mock_fast_mcp = AsyncMock()
+        mock_tools = [
+            Tool(name="api_get_users", description="Get all users", inputSchema={}),
+            Tool(name="api_create_user", description="Create a new user", inputSchema={}),
+            Tool(name="internal_debug", description="Debug tool", inputSchema={}),
+        ]
+        mock_fast_mcp.list_tools.return_value = mock_tools
+        target._fast_mcp = mock_fast_mcp
+
+        result = await target.list_tools()
+        assert len(result) == 2
+        assert all(tool.name.startswith("api_") for tool in result)
+        assert result[0].name == "api_get_users"
+        assert result[1].name == "api_create_user"
+
+    @pytest.mark.asyncio
+    async def test_list_tools_with_exclude_prefix(self):
+        """Test list_tools filters tools with exclude_tools_with_prefix."""
+        target = OasTarget("test-oas", "http://example.com/openapi.json", exclude_tools_with_prefix="internal_")
+
+        mock_fast_mcp = AsyncMock()
+        mock_tools = [
+            Tool(name="get_users", description="Get all users", inputSchema={}),
+            Tool(name="create_user", description="Create a new user", inputSchema={}),
+            Tool(name="internal_debug", description="Debug tool", inputSchema={}),
+            Tool(name="internal_admin", description="Admin tool", inputSchema={}),
+        ]
+        mock_fast_mcp.list_tools.return_value = mock_tools
+        target._fast_mcp = mock_fast_mcp
+
+        result = await target.list_tools()
+        assert len(result) == 2
+        assert all(not tool.name.startswith("internal_") for tool in result)
+        assert result[0].name == "get_users"
+        assert result[1].name == "create_user"
+
+    @pytest.mark.asyncio
+    async def test_list_tools_include_prefix_no_matches(self):
+        """Test list_tools with include prefix that matches no tools."""
+        target = OasTarget("test-oas", "http://example.com/openapi.json", include_tools_with_prefix="nonexistent_")
+
+        mock_fast_mcp = AsyncMock()
+        mock_tools = [
+            Tool(name="get_users", description="Get all users", inputSchema={}),
+            Tool(name="create_user", description="Create a new user", inputSchema={}),
+        ]
+        mock_fast_mcp.list_tools.return_value = mock_tools
+        target._fast_mcp = mock_fast_mcp
+
+        result = await target.list_tools()
+        assert len(result) == 0
+
+    @pytest.mark.asyncio
+    async def test_list_tools_exclude_prefix_no_matches(self):
+        """Test list_tools with exclude prefix that matches no tools."""
+        target = OasTarget("test-oas", "http://example.com/openapi.json", exclude_tools_with_prefix="nonexistent_")
+
+        mock_fast_mcp = AsyncMock()
+        mock_tools = [
+            Tool(name="get_users", description="Get all users", inputSchema={}),
+            Tool(name="create_user", description="Create a new user", inputSchema={}),
+        ]
+        mock_fast_mcp.list_tools.return_value = mock_tools
+        target._fast_mcp = mock_fast_mcp
+
+        result = await target.list_tools()
+        assert len(result) == 2
+        assert result == mock_tools
+
+    @pytest.mark.asyncio
     async def test_call_tool(self):
         """Test call_tool delegates to FastMCP server."""
         target = OasTarget("test-oas", "http://example.com/openapi.json")
@@ -191,6 +324,58 @@ class TestOasTarget:
 
         with pytest.raises(RuntimeError, match="API call failed"):
             await target.call_tool("get_users", {"limit": 10})
+
+    @pytest.mark.asyncio
+    async def test_call_tool_with_include_prefix_allowed(self):
+        """Test call_tool with include prefix allows matching tools."""
+        target = OasTarget("test-oas", "http://example.com/openapi.json", include_tools_with_prefix="api_")
+
+        mock_fast_mcp = AsyncMock()
+        mock_content = [TextContent(type="text", text="API response")]
+        mock_fast_mcp.call_tool.return_value = mock_content
+        target._fast_mcp = mock_fast_mcp
+
+        result = await target.call_tool("api_get_users", {"limit": 10})
+
+        assert result == mock_content
+        mock_fast_mcp.call_tool.assert_called_once_with("api_get_users", {"limit": 10})
+
+    @pytest.mark.asyncio
+    async def test_call_tool_with_include_prefix_denied(self):
+        """Test call_tool with include prefix denies non-matching tools."""
+        target = OasTarget("test-oas", "http://example.com/openapi.json", include_tools_with_prefix="api_")
+
+        mock_fast_mcp = AsyncMock()
+        target._fast_mcp = mock_fast_mcp
+
+        with pytest.raises(ToolError, match="Unknown tool: internal_debug"):
+            await target.call_tool("internal_debug", {"param": "value"})
+
+    @pytest.mark.asyncio
+    async def test_call_tool_with_exclude_prefix_allowed(self):
+        """Test call_tool with exclude prefix allows non-matching tools."""
+        target = OasTarget("test-oas", "http://example.com/openapi.json", exclude_tools_with_prefix="internal_")
+
+        mock_fast_mcp = AsyncMock()
+        mock_content = [TextContent(type="text", text="API response")]
+        mock_fast_mcp.call_tool.return_value = mock_content
+        target._fast_mcp = mock_fast_mcp
+
+        result = await target.call_tool("get_users", {"limit": 10})
+
+        assert result == mock_content
+        mock_fast_mcp.call_tool.assert_called_once_with("get_users", {"limit": 10})
+
+    @pytest.mark.asyncio
+    async def test_call_tool_with_exclude_prefix_denied(self):
+        """Test call_tool with exclude prefix denies matching tools."""
+        target = OasTarget("test-oas", "http://example.com/openapi.json", exclude_tools_with_prefix="internal_")
+
+        mock_fast_mcp = AsyncMock()
+        target._fast_mcp = mock_fast_mcp
+
+        with pytest.raises(ToolError, match="Unknown tool: internal_debug"):
+            await target.call_tool("internal_debug", {"param": "value"})
 
     @pytest.mark.asyncio
     async def test_close(self):

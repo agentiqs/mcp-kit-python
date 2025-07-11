@@ -108,9 +108,9 @@ class OasTarget(Target):
                 "OasTarget server is not initialized. Call initialize() first.",
             )
         tools = await self._fast_mcp.list_tools()
-        if self._include_tools_with_prefix:
+        if self._include_tools_with_prefix is not None:
             tools = [tool for tool in tools if tool.name.startswith(self._include_tools_with_prefix)]
-        elif self._exclude_tools_with_prefix:
+        elif self._exclude_tools_with_prefix is not None:
             tools = [tool for tool in tools if not tool.name.startswith(self._exclude_tools_with_prefix)]
         return tools
 
