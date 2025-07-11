@@ -3,3 +3,4 @@ target:
   type: oas
   name: petstore-api
   spec_url: https://petstore3.swagger.io/api/v3/openapi.json
+  include_tools_with_prefix: get_  # Include only read-only tools
