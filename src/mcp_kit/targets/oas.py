@@ -7,6 +7,7 @@ import click
 import uvicorn
 from mcp import Tool
 from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.exceptions import ToolError
 from mcp.server.fastmcp.server import Context
 from mcp.server.session import ServerSessionT
 from mcp.shared.context import LifespanContextT
@@ -29,6 +30,8 @@ class OasTarget(Target):
         self,
         name: str,
         spec_url: str,
+        include_tools_with_prefix: str | None = None,
+        exclude_tools_with_prefix: str | None = None,
     ) -> None:
         """Initialize the OAS target.
 
@@ -38,6 +41,13 @@ class OasTarget(Target):
         self._name = name
         self._spec_url = spec_url
         self._fast_mcp: FastMCP | None = None
+        self._include_tools_with_prefix = include_tools_with_prefix
+        self._exclude_tools_with_prefix = exclude_tools_with_prefix
+
+        if include_tools_with_prefix is not None and exclude_tools_with_prefix is not None:
+            raise ValueError(
+                "Cannot specify both include_tools_with_prefix and exclude_tools_with_prefix.",
+            )
 
     @property
     def name(self) -> str:
@@ -54,7 +64,12 @@ class OasTarget(Target):
         :param config: Target configuration from OmegaConf
         :return: OasTarget instance
         """
-        return cls(name=config.name, spec_url=config.spec_url)
+        return cls(
+            name=config.name,
+            spec_url=config.spec_url,
+            include_tools_with_prefix=config.get("include_tools_with_prefix", None),
+            exclude_tools_with_prefix=config.get("exclude_tools_with_prefix", None),
+        )
 
     async def initialize(self) -> None:
         """Initialize the target by creating MCP server from OpenAPI spec.
@@ -92,7 +107,12 @@ class OasTarget(Target):
             raise ValueError(
                 "OasTarget server is not initialized. Call initialize() first.",
             )
-        return await self._fast_mcp.list_tools()
+        tools = await self._fast_mcp.list_tools()
+        if self._include_tools_with_prefix:
+            tools = [tool for tool in tools if tool.name.startswith(self._include_tools_with_prefix)]
+        elif self._exclude_tools_with_prefix:
+            tools = [tool for tool in tools if not tool.name.startswith(self._exclude_tools_with_prefix)]
+        return tools
 
     async def call_tool(
         self,
@@ -110,6 +130,11 @@ class OasTarget(Target):
             raise ValueError(
                 "OasTarget server is not initialized. Call initialize() first.",
             )
+        if (self._include_tools_with_prefix is not None and not name.startswith(self._include_tools_with_prefix)) or (
+            self._exclude_tools_with_prefix is not None and name.startswith(self._exclude_tools_with_prefix)
+        ):
+            raise ToolError(f"Unknown tool: {name}")
+
         return list(await self._fast_mcp.call_tool(name, arguments or {}))
 
     async def list_prompts(self) -> list[Prompt]:
