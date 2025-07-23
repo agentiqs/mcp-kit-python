@@ -1,4 +1,4 @@
-"""MCP target implementation for connecting to MCP servers (hosted or with a spec)."""
+"""Proxy target implementation for adding custom behavior before forwarding requests."""
 
 from collections.abc import Awaitable
 from typing import Any
@@ -28,7 +28,7 @@ def default_call_tool_dispatch(
 
 
 class ProxyTarget(Target):
-    """Target implementation for proxying MCP requests.
+    """Target implementation for proxying call tool requests.
 
     This target runs as a proxy target that can run custom code before forwarding requests to an underlying target.
     """
@@ -38,7 +38,7 @@ class ProxyTarget(Target):
         target: Target,
         call_tool_dispatch: CallToolDispatch = default_call_tool_dispatch,
     ) -> None:
-        """Initialize the MCP target.
+        """Initialize the Proxy target.
 
         :param target: The underlying target to proxy requests to
         :param call_tool_dispatch: Optional custom dispatch function for tool calls
@@ -56,10 +56,10 @@ class ProxyTarget(Target):
 
     @classmethod
     def from_config(cls, config: DictConfig) -> Self:
-        """Create McpTarget from configuration.
+        """Create ProxyTarget from configuration.
 
         :param config: Target configuration from OmegaConf
-        :return: McpTarget instance
+        :return: ProxyTarget instance
         """
         # Create the base target
         base_target = create_target_from_config(config.base_target)
@@ -82,12 +82,11 @@ class ProxyTarget(Target):
         name: str,
         arguments: dict[str, Any] | None = None,
     ) -> list[Content]:
-        """Call a tool on the remote MCP server.
+        """Call a tool on the underlying target through our dispatch.
 
         :param name: Name of the tool to call
         :param arguments: Arguments to pass to the tool
         :return: List of content responses from the tool
-        :raises ValueError: If MCP client is not initialized
         """
         return await self.call_tool_dispatch(name, arguments, self.target.call_tool)
 
