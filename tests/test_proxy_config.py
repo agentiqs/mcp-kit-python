@@ -29,11 +29,12 @@ class TestProxyMCPFromConfig:
 
         try:
             proxy = ProxyMCP.from_config(config_file)
+            base_target = proxy.target.target
 
-            assert isinstance(proxy.target, McpTarget)
-            assert proxy.target.name == "test-mcp"
-            assert proxy.target.url == "http://example.com/mcp"
-            assert proxy.target.headers == {"Authorization": "Bearer token123"}
+            assert isinstance(base_target, McpTarget)
+            assert base_target.name == "test-mcp"
+            assert base_target.url == "http://example.com/mcp"
+            assert base_target.headers == {"Authorization": "Bearer token123"}
         finally:
             Path(config_file).unlink()
 
@@ -53,10 +54,11 @@ class TestProxyMCPFromConfig:
 
         try:
             proxy = ProxyMCP.from_config(config_file)
+            base_target = proxy.target.target
 
-            assert isinstance(proxy.target, OasTarget)
-            assert proxy.target.name == "test-oas"
-            assert proxy.target._spec_url == "http://example.com/openapi.json"
+            assert isinstance(base_target, OasTarget)
+            assert base_target.name == "test-oas"
+            assert base_target._spec_url == "http://example.com/openapi.json"
         finally:
             Path(config_file).unlink()
 
@@ -80,12 +82,13 @@ class TestProxyMCPFromConfig:
 
         try:
             proxy = ProxyMCP.from_config(config_file)
+            base_target = proxy.target.target
 
-            assert isinstance(proxy.target, MockedTarget)
-            assert isinstance(proxy.target.target, McpTarget)
-            assert proxy.target.target.name == "base-mcp"
+            assert isinstance(base_target, MockedTarget)
+            assert isinstance(base_target.target, McpTarget)
+            assert base_target.target.name == "base-mcp"
             assert isinstance(
-                proxy.target.mock_config.tool_response_generator,
+                base_target.mock_config.tool_response_generator,
                 RandomResponseGenerator,
             )
         finally:
@@ -111,11 +114,12 @@ class TestProxyMCPFromConfig:
 
         try:
             proxy = ProxyMCP.from_config(config_file)
+            base_target = proxy.target.target
 
-            assert isinstance(proxy.target, MockedTarget)
-            assert isinstance(proxy.target.target, OasTarget)
+            assert isinstance(base_target, MockedTarget)
+            assert isinstance(base_target.target, OasTarget)
             assert isinstance(
-                proxy.target.mock_config.tool_response_generator,
+                base_target.mock_config.tool_response_generator,
                 LlmResponseGenerator,
             )
         finally:
@@ -144,12 +148,13 @@ class TestProxyMCPFromConfig:
 
         try:
             proxy = ProxyMCP.from_config(config_file)
+            base_target = proxy.target.target
 
-            assert isinstance(proxy.target, MultiplexTarget)
-            assert proxy.target.name == "multi-target"
-            assert len(proxy.target._targets_dict) == 2
-            assert isinstance(proxy.target._targets_dict["mcp-1"], McpTarget)
-            assert isinstance(proxy.target._targets_dict["oas-1"], OasTarget)
+            assert isinstance(base_target, MultiplexTarget)
+            assert base_target.name == "multi-target"
+            assert len(base_target._targets_dict) == 2
+            assert isinstance(base_target._targets_dict["mcp-1"], McpTarget)
+            assert isinstance(base_target._targets_dict["oas-1"], OasTarget)
         finally:
             Path(config_file).unlink()
 
@@ -171,9 +176,10 @@ class TestProxyMCPFromConfig:
 
         try:
             proxy = ProxyMCP.from_config(config_file)
+            base_target = proxy.target.target
 
-            assert isinstance(proxy.target, McpTarget)
-            assert proxy.target.name == "test-mcp-json"
+            assert isinstance(base_target, McpTarget)
+            assert base_target.name == "test-mcp-json"
         finally:
             Path(config_file).unlink()
 
@@ -193,9 +199,10 @@ class TestProxyMCPFromConfig:
 
         try:
             proxy = ProxyMCP.from_config(config_file)
+            base_target = proxy.target.target
 
-            assert isinstance(proxy.target, McpTarget)
-            assert proxy.target.name == "test-mcp-path"
+            assert isinstance(base_target, McpTarget)
+            assert base_target.name == "test-mcp-path"
         finally:
             config_file.unlink()
 
@@ -250,12 +257,13 @@ class TestProxyMCPFromConfig:
 
         try:
             proxy = ProxyMCP.from_config(config_file)
+            base_target = proxy.target.target
 
-            assert isinstance(proxy.target, McpTarget)
-            assert proxy.target.name == "minimal-mcp"
-            assert proxy.target.url is None
-            assert proxy.target.headers is None
-            assert proxy.target.tools is None
+            assert isinstance(base_target, McpTarget)
+            assert base_target.name == "minimal-mcp"
+            assert base_target.url is None
+            assert base_target.headers is None
+            assert base_target.tools is None
         finally:
             Path(config_file).unlink()
 
@@ -279,8 +287,9 @@ class TestProxyMCPFromConfig:
 
         try:
             proxy = ProxyMCP.from_config(config_file)
+            base_target = proxy.target.target
 
-            assert isinstance(proxy.target, MockedTarget)
-            assert proxy.target.mock_config.tool_response_generator is None
+            assert isinstance(base_target, MockedTarget)
+            assert base_target.mock_config.tool_response_generator is None
         finally:
             Path(config_file).unlink()

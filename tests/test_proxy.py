@@ -44,7 +44,7 @@ class TestProxyMCP:
     def test_init(self, mock_target):
         """Test ProxyMCP initialization."""
         proxy = ProxyMCP(mock_target)
-        assert proxy.target == mock_target
+        assert proxy.target.target == mock_target
 
     def test_from_config_yaml(self):
         """Test ProxyMCP.from_config with YAML file."""
@@ -111,7 +111,7 @@ class TestProxyMCP:
         """Test client_session_adapter context manager."""
         async with proxy_mcp.client_session_adapter() as adapter:
             assert isinstance(adapter, ClientSessionAdapter)
-            assert adapter.target == mock_target
+            assert adapter.target.target == mock_target  # type: ignore[attr-defined]
             mock_target.initialize.assert_called_once()
 
         # After exiting context, target should be closed
@@ -137,7 +137,7 @@ class TestProxyMCP:
         """Test openai_agents_mcp_server context manager."""
         async with proxy_mcp.openai_agents_mcp_server() as adapter:
             assert isinstance(adapter, OpenAIMCPServerAdapter)
-            assert adapter.target == mock_target
+            assert adapter.target.target == mock_target  # type: ignore[attr-defined]
             mock_target.initialize.assert_called_once()
 
         # After exiting context, target should be closed
@@ -188,7 +188,7 @@ class TestProxyMCP:
         """Test langgraph_multi_server_mcp_client method."""
         client = proxy_mcp.langgraph_multi_server_mcp_client()
         assert isinstance(client, LangGraphMultiServerMCPClient)
-        assert client.target == mock_target
+        assert client.target.target == mock_target  # type: ignore[attr-defined]
 
     @pytest.mark.asyncio
     async def test_integration_flow(self, proxy_mcp, mock_target):
@@ -229,7 +229,7 @@ class TestProxyMCP:
 
         # Test LangGraph client (doesn't require context manager)
         langgraph_client = proxy_mcp.langgraph_multi_server_mcp_client()
-        assert langgraph_client.target == mock_target
+        assert langgraph_client.target.target == mock_target
 
         # Verify target was properly cleaned up after each adapter usage
         assert mock_target.close.call_count == 2  # Called twice (client + openai)

@@ -19,6 +19,8 @@ from mcp_kit.adapters import (
 )
 from mcp_kit.factory import create_target_from_config
 from mcp_kit.targets import Target
+from mcp_kit.targets.proxy import ProxyTarget, default_call_tool_dispatch
+from mcp_kit.types import CallToolDispatch
 
 logger = logging.getLogger(__name__)
 
@@ -31,12 +33,17 @@ class ProxyMCP:
     OpenAI Agents SDK, official MCP servers, and LangGraph compatibility.
     """
 
-    def __init__(self, target: Target) -> None:
+    def __init__(
+        self,
+        target: Target,
+        call_tool_dispatch: CallToolDispatch = default_call_tool_dispatch,
+    ) -> None:
         """Initialize the ProxyMCP with a target MCP server.
 
         :param target: The target MCP server to proxy requests to
         """
-        self.target = target
+        self.call_tool_dispatch = call_tool_dispatch
+        self.target = ProxyTarget(target, call_tool_dispatch)
 
     @classmethod
     def from_config(cls, config_file: str | Path) -> Self:
@@ -48,6 +55,18 @@ class ProxyMCP:
         config = OmegaConf.load(config_file)
         target = create_target_from_config(config.target)
         return cls(target)
+
+    def set_call_tool_dispatch(self, fn: CallToolDispatch) -> Self:
+        """Set the call tool dispatch function.
+
+        This function is used to handle tool calls and can be customized
+        to change how tool calls are processed.
+
+        :param fn: The new call tool dispatch function
+        """
+        self.call_tool_dispatch = fn
+        self.target = ProxyTarget(self.target.target, fn)
+        return self
 
     @asynccontextmanager
     async def client_session_adapter(self) -> AsyncIterator[Any]:

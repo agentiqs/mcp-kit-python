@@ -1,7 +1,7 @@
 """LLM-based response generator for realistic mock responses."""
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 import litellm
 from litellm import acompletion
@@ -17,6 +17,18 @@ from mcp_kit.generators.interfaces import ToolResponseGenerator
 # Suppress INFO logging from LiteLLM
 logging.getLogger("LiteLLM").setLevel(logging.WARNING)
 litellm.suppress_debug_info = True  # Suppress extra debug info from litellm
+
+
+def strip_markdown_code_block(text: str) -> str:
+    """
+    Strip any markdown code block from the text.
+    """
+    lines = text.strip().splitlines()
+    if lines and lines[0].startswith("```"):
+        lines = lines[1:]
+    if lines and lines[-1].startswith("```"):
+        lines = lines[:-1]
+    return "\n".join(lines).strip()
 
 
 class LlmAuthenticationError(Exception):
@@ -109,9 +121,12 @@ Make the response realistic and contextually appropriate for the given tool call
         """
 
         try:
-            response: ModelResponse = await acompletion(
-                model=self.model,
-                messages=self.messages + [{"role": "user", "content": prompt}],
+            response: ModelResponse = cast(
+                ModelResponse,
+                await acompletion(
+                    model=self.model,
+                    messages=self.messages + [{"role": "user", "content": prompt}],
+                ),
             )
         except AuthenticationError:
             raise LlmAuthenticationError(
@@ -122,4 +137,4 @@ Make the response realistic and contextually appropriate for the given tool call
             raise ValueError(
                 "LLM response is empty. Please check the model and prompt.",
             )
-        return [TextContent(type="text", text=choice.message.content.strip())]
+        return [TextContent(type="text", text=strip_markdown_code_block(choice.message.content))]
